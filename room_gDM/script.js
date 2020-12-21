@@ -51,6 +51,9 @@ const Peer = window.Peer;
 
   lDispStream.getTracks().forEach(track => localStream.addTrack(track));
   console.log(localStream);
+
+  localCam.pause();
+  localStream.getVideoTracks()[0] = null;
   });
 
   // Render local stream
@@ -95,9 +98,10 @@ const Peer = window.Peer;
         newVideo.srcObject = newStream;
         newVideo.playsInline = true;
         // mark peerId to find it later at peerLeave event
-        newVideo.setAttribute('data-peer-id', stream.peerId);
+        newVideo.setAttribute('data-peer-id', stream.peerId + index);
         remoteVideos.append(newVideo);
         await newVideo.play().catch(console.error);
+        console.log('videoTrack: ' + videoTrack + '/index: ' + index);
       });
     });
 
