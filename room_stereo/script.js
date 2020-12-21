@@ -56,8 +56,10 @@ const Peer = window.Peer;
       return;
     }
 
-    const localStream = new MediaStream();
-    const localStreamTracks = await getStereoStreamTrack();
+    // making mediaStream from localAudioFile
+    /*
+    // without editing
+    const localStream = await getStereoStream();
     function getStereoStream(){
       const audioCtx = new(window.AudioContext || window.webkitAudioContext);
       const source = audioCtx.createMediaElementSource(localAudioFile);
@@ -66,7 +68,12 @@ const Peer = window.Peer;
       //localAudioFile.play();
       return destination.stream;
     }
-    function getStereoStreamTrack(){
+    */
+
+    // with stereo mixing
+    const localStream = new MediaStream();
+    const localStreamTracks = await (() => {//getStereoStreamTrack();
+    //function getStereoStreamTrack(){
       const audioCtx = new(window.AudioContext || window.webkitAudioContext);
       const source = audioCtx.createMediaElementSource(localAudioFile);
       const destinationL = audioCtx.createMediaStreamDestination();
@@ -77,9 +84,28 @@ const Peer = window.Peer;
       splitter.connect(destinationR, 1);
       //localAudioFile.play();
       return [destinationL.stream, destinationR.stream];
-    }
+    });
+    console.log(localStreamTracks.length);
     localStream.addTrack(localStreamTracks[0].getTracks()[0]);
     localStream.addTrack(localStreamTracks[1].getTracks()[0]);
+    
+    
+    localStream.getAudioTracks().forEach((track) => {
+      console.log(track.getConstraints());
+    });
+
+    const constraints = {
+      echoCancellation: false
+    };
+
+    await localStream.getAudioTracks().forEach((track) => {
+      track.applyConstraints(constraints)
+      .catch(console.error);
+    });
+
+    localStream.getAudioTracks().forEach((track) => {
+      console.log(track.getConstraints());
+    });
 
     console.log('TrackLength: '&localStream.getAudioTracks().length);
 
