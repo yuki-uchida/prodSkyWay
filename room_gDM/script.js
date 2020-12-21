@@ -1,7 +1,9 @@
 const Peer = window.Peer;
 
 (async function main() {
-  const localVideo = document.getElementById('js-local-stream');
+  const localCam = document.getElementById('js-lUser-stream');
+  const localDisp = document.getElementById('js-lDisp-stream');
+  const onDispTrigger = document.getElementById('js-onDisplay');
   const joinTrigger = document.getElementById('js-join-trigger');
   const leaveTrigger = document.getElementById('js-leave-trigger');
   const remoteVideos = document.getElementById('js-remote-streams');
@@ -27,17 +29,35 @@ const Peer = window.Peer;
   );
 
   const localStream = await navigator.mediaDevices
+    .getUserMedia({
+      audio: true,
+      video: true,
+    })
+    .catch(console.error);
+  console.log(localStream);
+
+  onDispTrigger.addEventListener('click', async () => {
+  const lDispStream = await navigator.mediaDevices
     .getDisplayMedia({
       audio: true,
       video: true,
     })
     .catch(console.error);
 
+  localDisp.muted = true;
+  localDisp.srcObject = lDispStream;
+  localDisp.playsInline = true;
+  await localDisp.play().catch(console.error);
+
+  lDispStream.getTracks().forEach(track => localStream.addTrack(track));
+  console.log(localStream);
+  });
+
   // Render local stream
-  localVideo.muted = true;
-  localVideo.srcObject = localStream;
-  localVideo.playsInline = true;
-  await localVideo.play().catch(console.error);
+  localCam.muted = true;
+  localCam.srcObject = localStream;
+  localCam.playsInline = true;
+  await localCam.play().catch(console.error);
 
   // eslint-disable-next-line require-atomic-updates
   const peer = (window.peer = new Peer({
@@ -67,13 +87,18 @@ const Peer = window.Peer;
 
     // Render remote stream for new peer join in the room
     room.on('stream', async stream => {
-      const newVideo = document.createElement('video');
-      newVideo.srcObject = stream;
-      newVideo.playsInline = true;
-      // mark peerId to find it later at peerLeave event
-      newVideo.setAttribute('data-peer-id', stream.peerId);
-      remoteVideos.append(newVideo);
-      await newVideo.play().catch(console.error);
+      stream.getTracks().forEach( async (videoTrack, index) => {
+        const newVideo = document.createElement('video');
+        const newStream = new MediaStream();
+        newStream.addTrack(videoTrack);
+        //newStream.addTrack(stream.getAudioTracks()[index]);
+        newVideo.srcObject = newStream;
+        newVideo.playsInline = true;
+        // mark peerId to find it later at peerLeave event
+        newVideo.setAttribute('data-peer-id', stream.peerId);
+        remoteVideos.append(newVideo);
+        await newVideo.play().catch(console.error);
+      });
     });
 
     room.on('data', ({ data, src }) => {
