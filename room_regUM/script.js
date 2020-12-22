@@ -144,7 +144,13 @@ const Peer = window.Peer;
 
       room.replaceStream(localStream);
 
-    console.log(localStream.getTracks().length);
+      //console.log(localStream.getTracks().length);
+
+      // Render local stream
+      localVideo.muted = true;
+      localVideo.srcObject = localStream;
+      localVideo.playsInline = true;
+      await localVideo.play().catch(console.error);
     });
   });
 
