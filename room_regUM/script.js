@@ -30,12 +30,12 @@ const Peer = window.Peer;
   let localStream = new MediaStream();
   console.log(localStream.getTracks().length);
 
-  gUMTrigger.addEventListener('click', async () => {
+  /*gUMTrigger.addEventListener('click', async () => {
     if(localStream.getTracks().length > 0){
       localStream.getTracks().forEach( track => localStream.removeTrack(track) );
       console.log(localStream.getTracks().length);
     }
-
+  */
     localStream = await navigator.mediaDevices
       .getUserMedia({
         audio: true,
@@ -43,15 +43,15 @@ const Peer = window.Peer;
       })
       .catch(console.error);
 
-  console.log(localStream.getTracks().length)
+    console.log(localStream.getTracks().length);
 
-  // Render local stream
-  localVideo.muted = true;
-  localVideo.srcObject = localStream;
-  localVideo.playsInline = true;
-  await localVideo.play().catch(console.error);
+    // Render local stream
+    localVideo.muted = true;
+    localVideo.srcObject = localStream;
+    localVideo.playsInline = true;
+    await localVideo.play().catch(console.error);
 
-  });
+  //});
 
   // eslint-disable-next-line require-atomic-updates
   const peer = (window.peer = new Peer({
@@ -128,7 +128,26 @@ const Peer = window.Peer;
       messages.textContent += `${peer.id}: ${localText.value}\n`;
       localText.value = '';
     }
+
+    gUMTrigger.addEventListener('click', async () => {
+      if(localStream.getTracks().length > 0){
+        localStream.getTracks().forEach( track => localStream.removeTrack(track) );
+        console.log(localStream.getTracks().length);
+      }
+
+      localStream = await navigator.mediaDevices
+      .getUserMedia({
+        audio: true,
+        video: true,
+      })
+      .catch(console.error);
+
+      room.replaceStream(localStream);
+
+    console.log(localStream.getTracks().length);
+    });
   });
+
 
   peer.on('error', console.error);
 })();
