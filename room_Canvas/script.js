@@ -88,6 +88,16 @@ const Peer = window.Peer;
       newVideo.setAttribute('data-peer-id', stream.peerId);
       remoteVideos.append(newVideo);
       await newVideo.play().catch(console.error);
+
+      const newCanvas = document.createElement('canvas');
+      newCanvas.setAttribute('data-peer-id', stream.peerId);
+      const remoteCtx = newCanvas.getContext('2d');
+      setInterval(() => {
+        if (newCanvas && remoteCtx){
+          remoteCtx.drawImage(newVideo, 0, 0);
+        }
+      }, 10000/30);
+      remoteVideos.append(newCanvas);
     });
 
     room.on('data', ({ data, src }) => {
