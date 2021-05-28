@@ -92,10 +92,10 @@ const Peer = window.Peer;
     slct_device.addEventListener('change', async () => {
       localStream = await navigator.mediaDevices
         .getUserMedia({
-          audio: true,
-          video: {
+          audio: { //true,
             deviceId: slct_device.value,
           },
+          video: true,
         })
         .catch(console.error);
 
