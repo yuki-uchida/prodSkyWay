@@ -36,13 +36,14 @@ const Peer = window.Peer;
   }
 
   //select device
-  const defaultStream = await navigator.mediaDevices
+  let localStream;
+  localStream = await navigator.mediaDevices
     .getUserMedia({
       audio: true,
       video: true,
     })
     .catch(console.error);
-  playLocalStream(defaultStream);
+  playLocalStream(localStream);
 
   const devices = await navigator.mediaDevices.enumerateDevices();
 
@@ -55,7 +56,7 @@ const Peer = window.Peer;
       }
   });
 
-  let localStream;
+  console.log(slct_device.value);
   slct_device.addEventListener('change', async () => {
     localStream = await navigator.mediaDevices
       .getUserMedia({
@@ -66,6 +67,8 @@ const Peer = window.Peer;
       })
       .catch(console.error);
 
+
+    console.log(slct_device.value);
     playLocalStream(localStream);
   });
 
