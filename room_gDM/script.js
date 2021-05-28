@@ -36,6 +36,12 @@ const Peer = window.Peer;
     .catch(console.error);
   console.log(localStream);
 
+  // Render local stream
+  localCam.muted = true;
+  localCam.srcObject = localStream;
+  localCam.playsInline = true;
+  await localCam.play().catch(console.error);
+
   onDispTrigger.addEventListener('click', async () => {
   const lDispStream = await navigator.mediaDevices
     .getDisplayMedia({
@@ -52,20 +58,15 @@ const Peer = window.Peer;
   lDispStream.getTracks().forEach(track => localStream.addTrack(track));
   console.log(localStream);
 
-  localCam.pause();
-  localStream.getVideoTracks()[0] = null;
   });
-
-  // Render local stream
-  localCam.muted = true;
-  localCam.srcObject = localStream;
-  localCam.playsInline = true;
-  await localCam.play().catch(console.error);
 
   // eslint-disable-next-line require-atomic-updates
   const peer = (window.peer = new Peer({
     key: window.__SKYWAY_KEY__,
     debug: 3,
+    config: {
+    iceTransportPolicy: 'relay',
+  },
   }));
 
   // Register join handler
