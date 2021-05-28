@@ -2,7 +2,6 @@ const Peer = window.Peer;
 
 (async function main() {
   const localVideo = document.getElementById('js-local-stream');
-  const gUMTrigger = document.getElementById('js-gUM-trigger');
   const joinTrigger = document.getElementById('js-join-trigger');
   const leaveTrigger = document.getElementById('js-leave-trigger');
   const remoteVideos = document.getElementById('js-remote-streams');
@@ -27,31 +26,21 @@ const Peer = window.Peer;
     () => (roomMode.textContent = getRoomModeByHash())
   );
 
-  let localStream = new MediaStream();
-  console.log(localStream.getTracks().length);
+  const localStream = await navigator.mediaDevices
+    .getUserMedia({
+      audio: true,
+      video: {
+        width: 1024,
+        height: 720,
+      }
+    })
+    .catch(console.error);
 
-  /*gUMTrigger.addEventListener('click', async () => {
-    if(localStream.getTracks().length > 0){
-      localStream.getTracks().forEach( track => localStream.removeTrack(track) );
-      console.log(localStream.getTracks().length);
-    }
-  */
-    localStream = await navigator.mediaDevices
-      .getUserMedia({
-        audio: true,
-        video: true,
-      })
-      .catch(console.error);
-
-    console.log(localStream.getTracks().length);
-
-    // Render local stream
-    localVideo.muted = true;
-    localVideo.srcObject = localStream;
-    localVideo.playsInline = true;
-    await localVideo.play().catch(console.error);
-
-  //});
+  // Render local stream
+  localVideo.muted = true;
+  localVideo.srcObject = localStream;
+  localVideo.playsInline = true;
+  await localVideo.play().catch(console.error);
 
   // eslint-disable-next-line require-atomic-updates
   const peer = (window.peer = new Peer({
@@ -67,10 +56,12 @@ const Peer = window.Peer;
       return;
     }
 
+    const roomMode = getRoomModeByHash();
     const room = peer.joinRoom(roomId.value, {
-      mode: getRoomModeByHash(),
+      mode: roomMode,
       stream: localStream,
     });
+    
 
     room.once('open', () => {
       messages.textContent += '=== You joined ===\n';
@@ -84,6 +75,8 @@ const Peer = window.Peer;
       const newVideo = document.createElement('video');
       newVideo.srcObject = stream;
       newVideo.playsInline = true;
+      newVideo.playoutDelayHint = 0.3;
+      newVideo.jitterBufferDelayHint = 0.3;
       // mark peerId to find it later at peerLeave event
       newVideo.setAttribute('data-peer-id', stream.peerId);
       remoteVideos.append(newVideo);
@@ -128,32 +121,7 @@ const Peer = window.Peer;
       messages.textContent += `${peer.id}: ${localText.value}\n`;
       localText.value = '';
     }
-
-    gUMTrigger.addEventListener('click', async () => {
-      /*if(localStream.getTracks().length > 0){
-        localStream.getTracks().forEach( track => localStream.removeTrack(track) );
-        console.log(localStream.getTracks().length);
-      }
-
-      localStream = await navigator.mediaDevices
-      .getUserMedia({
-        audio: true,
-        video: true,
-      })
-      .catch(console.error);*/
-
-      room.replaceStream(localStream);
-
-      //console.log(localStream.getTracks().length);
-
-      // Render local stream
-      localVideo.muted = true;
-      localVideo.srcObject = localStream;
-      localVideo.playsInline = true;
-      await localVideo.play().catch(console.error);
-    });
   });
-
 
   peer.on('error', console.error);
 })();

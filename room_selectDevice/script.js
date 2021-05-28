@@ -2,7 +2,6 @@ const Peer = window.Peer;
 
 (async function main() {
   const localVideo = document.getElementById('js-local-stream');
-  const gUMTrigger = document.getElementById('js-gUM-trigger');
   const joinTrigger = document.getElementById('js-join-trigger');
   const leaveTrigger = document.getElementById('js-leave-trigger');
   const remoteVideos = document.getElementById('js-remote-streams');
@@ -13,6 +12,7 @@ const Peer = window.Peer;
   const messages = document.getElementById('js-messages');
   const meta = document.getElementById('js-meta');
   const sdkSrc = document.querySelector('script[src*=skyway]');
+  const slct_device = document.getElementById('js-devices');
 
   meta.innerText = `
     UA: ${navigator.userAgent}
@@ -27,31 +27,47 @@ const Peer = window.Peer;
     () => (roomMode.textContent = getRoomModeByHash())
   );
 
-  let localStream = new MediaStream();
-  console.log(localStream.getTracks().length);
+  async function playLocalStream(_localStream){
+    // Render local stream
+    localVideo.muted = true;
+    localVideo.srcObject = _localStream;
+    localVideo.playsInline = true;
+    await localVideo.play().catch(console.error);
+  }
 
-  /*gUMTrigger.addEventListener('click', async () => {
-    if(localStream.getTracks().length > 0){
-      localStream.getTracks().forEach( track => localStream.removeTrack(track) );
-      console.log(localStream.getTracks().length);
-    }
-  */
+  //select device
+  const defaultStream = await navigator.mediaDevices
+    .getUserMedia({
+      audio: true,
+      video: true,
+    })
+    .catch(console.error);
+  playLocalStream(defaultStream);
+
+  const devices = await navigator.mediaDevices.enumerateDevices();
+
+  devices.find( (device) => {
+      if(device.kind === "audioinput"){
+        const option = document.createElement("option");
+        option.text = device.label;
+        option.value = device.deviceId;
+        slct_device.appendChild(option);
+      }
+  });
+
+  let localStream;
+  slct_device.addEventListener('change', async () => {
     localStream = await navigator.mediaDevices
       .getUserMedia({
-        audio: true,
+        audio: { //true,
+          deviceId: slct_device.value,
+        },
         video: true,
       })
       .catch(console.error);
 
-    console.log(localStream.getTracks().length);
-
-    // Render local stream
-    localVideo.muted = true;
-    localVideo.srcObject = localStream;
-    localVideo.playsInline = true;
-    await localVideo.play().catch(console.error);
-
-  //});
+    playLocalStream(localStream);
+  });
 
   // eslint-disable-next-line require-atomic-updates
   const peer = (window.peer = new Peer({
@@ -70,6 +86,21 @@ const Peer = window.Peer;
     const room = peer.joinRoom(roomId.value, {
       mode: getRoomModeByHash(),
       stream: localStream,
+    });
+
+    //slct_device.removeEventListener('change', ());
+    slct_device.addEventListener('change', async () => {
+      localStream = await navigator.mediaDevices
+        .getUserMedia({
+          audio: true,
+          video: {
+            deviceId: slct_device.value,
+          },
+        })
+        .catch(console.error);
+
+      playLocalStream(localStream);
+      room.replaceStream(localStream);
     });
 
     room.once('open', () => {
@@ -128,32 +159,7 @@ const Peer = window.Peer;
       messages.textContent += `${peer.id}: ${localText.value}\n`;
       localText.value = '';
     }
-
-    gUMTrigger.addEventListener('click', async () => {
-      /*if(localStream.getTracks().length > 0){
-        localStream.getTracks().forEach( track => localStream.removeTrack(track) );
-        console.log(localStream.getTracks().length);
-      }
-
-      localStream = await navigator.mediaDevices
-      .getUserMedia({
-        audio: true,
-        video: true,
-      })
-      .catch(console.error);*/
-
-      room.replaceStream(localStream);
-
-      //console.log(localStream.getTracks().length);
-
-      // Render local stream
-      localVideo.muted = true;
-      localVideo.srcObject = localStream;
-      localVideo.playsInline = true;
-      await localVideo.play().catch(console.error);
-    });
   });
-
 
   peer.on('error', console.error);
 })();
