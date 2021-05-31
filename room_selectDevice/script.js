@@ -114,6 +114,9 @@ const Peer = window.Peer;
 
       localStream.getVideoTracks().forEach( track => newLocalStream.addTrack(track));
       destination.stream.getAudioTracks().forEach( track => newLocalStream.addTrack(track));
+      console.log(newLocalStream.getAudioTracks());
+      console.log(newLocalStream.getVideoTracks());
+      
 
       playLocalStream(newLocalStream);
       room.replaceStream(newLocalStream);
