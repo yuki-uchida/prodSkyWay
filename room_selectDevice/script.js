@@ -103,26 +103,20 @@ const Peer = window.Peer;
         })
         .catch(console.error);
 
+      //replace to Stream from new device via AudioContext Filter
       const audioContext = new AudioContext();
-      const biquadFilter = audioContext.createBiquadFilter();
-      biquadFilter.type = 'highshelf';
-      biquadFilter.gain.value = -50;
 
       const mediaStreamSource = audioContext.createMediaStreamSource(localStream);
       const destination = audioContext.createMediaStreamDestination();
-
-      //mediaStreamSource.connect(biquadFilter);
-      //biquadFilter.connect(destination);
       mediaStreamSource.connect(destination);
 
       const newLocalStream = new MediaStream();
 
-      //localStream.getVideoTracks().forEach( track => newLocalStream.addTrack(track));
-      //console.log(destination);
-      //destination.stream.forEach( track => newLocalStream.addTrack(track));
+      localStream.getVideoTracks().forEach( track => newLocalStream.addTrack(track));
+      destination.stream.getAudioTracks().forEach( track => newLocalStream.addTrack(track));
 
-      playLocalStream(destination.stream);
-      room.replaceStream(destination.stream);
+      playLocalStream(newLocalStream);
+      room.replaceStream(newLocalStream);
     });
 
     room.once('open', () => {
