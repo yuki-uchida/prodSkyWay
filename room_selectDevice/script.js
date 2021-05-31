@@ -111,8 +111,9 @@ const Peer = window.Peer;
       const mediaStreamSource = audioContext.createMediaStreamSource(localStream);
       const destination = audioContext.createMediaStreamDestination();
 
-      mediaStreamSource.connect(biquadFilter);
-      biquadFilter.connect(destination);
+      //mediaStreamSource.connect(biquadFilter);
+      //biquadFilter.connect(destination);
+      mediaStreamSource.connect(destination);
 
       const newLocalStream = new MediaStream();
 
