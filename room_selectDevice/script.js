@@ -103,6 +103,7 @@ const Peer = window.Peer;
         })
         .catch(console.error);
 
+      //replace to Stream from new device via AudioContext Filter
       const audioContext = new AudioContext();
 
       const mediaStreamSource = audioContext.createMediaStreamSource(localStream);
@@ -112,7 +113,7 @@ const Peer = window.Peer;
       const newLocalStream = new MediaStream();
 
       localStream.getVideoTracks().forEach( track => newLocalStream.addTrack(track));
-      destination.stream.forEach( track => newLocalStream.addTrack(track));
+      destination.stream.getAudioTracks().forEach( track => newLocalStream.addTrack(track));
 
       playLocalStream(newLocalStream);
       room.replaceStream(newLocalStream);
