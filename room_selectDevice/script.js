@@ -48,6 +48,7 @@ const Peer = window.Peer;
   const devices = await navigator.mediaDevices.enumerateDevices();
 
   devices.find( (device) => {
+    console.log(device);
       if(device.kind === "audioinput"){
         const option = document.createElement("option");
         option.text = device.label;
@@ -102,8 +103,25 @@ const Peer = window.Peer;
         })
         .catch(console.error);
 
-      playLocalStream(localStream);
-      room.replaceStream(localStream);
+      const audioContext = new AudioContext();
+      const biquadFilter = audioContext.createBiquadFilter();
+      biquadFilter.type = 'highshelf';
+      biquadFilter.gain.value = -50;
+
+      const mediaStreamSource = audioContext.createMediaStreamSource(localStream);
+      const destination = audioContext.createMediaStreamDestination();
+
+      mediaStreamSource.connect(biquadFilter);
+      biquadFilter.connect(destination);
+
+      const newLocalStream = new MediaStream();
+
+      //localStream.getVideoTracks().forEach( track => newLocalStream.addTrack(track));
+      //console.log(destination);
+      //destination.stream.forEach( track => newLocalStream.addTrack(track));
+
+      playLocalStream(destination.stream);
+      room.replaceStream(destination.stream);
     });
 
     room.once('open', () => {
