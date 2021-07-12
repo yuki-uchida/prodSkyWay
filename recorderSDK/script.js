@@ -1,7 +1,7 @@
 const Peer = window.Peer;
 
 (async function main() {
-  const localVideo = document.getElementById('js-local-stream');
+  //const localVideo = document.getElementById('js-local-stream');
   const joinTrigger = document.getElementById('js-join-trigger');
   const leaveTrigger = document.getElementById('js-leave-trigger');
   const remoteVideos = document.getElementById('js-remote-streams');
@@ -12,6 +12,8 @@ const Peer = window.Peer;
   const messages = document.getElementById('js-messages');
   const meta = document.getElementById('js-meta');
   const sdkSrc = document.querySelector('script[src*=skyway]');
+  const localAudioFile = document.getElementById('js-local-audiofile');
+  const setAudioStream = document.getElementById('js-setAudioStream');
 
   meta.innerText = `
     UA: ${navigator.userAgent}
@@ -26,6 +28,7 @@ const Peer = window.Peer;
     () => (roomMode.textContent = getRoomModeByHash())
   );
 
+/*
   const localStream = await navigator.mediaDevices
     .getUserMedia({
       audio: true,
@@ -38,7 +41,7 @@ const Peer = window.Peer;
   localVideo.srcObject = localStream;
   localVideo.playsInline = true;
   await localVideo.play().catch(console.error);
-
+*/
   // eslint-disable-next-line require-atomic-updates
   const peer = (window.peer = new Peer({
     key: window.__SKYWAY_KEY__,
@@ -46,18 +49,27 @@ const Peer = window.Peer;
   }));
 
   // Register join handler
-  joinTrigger.addEventListener('click', () => {
+  joinTrigger.addEventListener('click', async () => {
     // Note that you need to ensure the peer has connected to signaling server
     // before using methods of peer instance.
     if (!peer.open) {
       return;
     }
 
-    const room = peer.joinRoom(roomId.value, {
+    const localStream = await localAudioFile.captureStream();
+
+    console.log(localStream);
+    
+    const room = await peer.joinRoom(roomId.value, {
       mode: getRoomModeByHash(),
       stream: localStream,
-      videoCodec: 'VP8',
+      //videoCodec: 'VP9',
+      //audioCodec: 'ISAC',
     });
+
+    const recorder = SkyWayRecorder.createRecorder(window.__SKYWAY_KEY__);
+    const res = await recorder.start(localStream.getAudioTracks()[0]);
+    console.log(res.id);
 
     room.once('open', () => {
       messages.textContent += '=== You joined ===\n';
@@ -68,13 +80,25 @@ const Peer = window.Peer;
 
     // Render remote stream for new peer join in the room
     room.on('stream', async stream => {
-      const newVideo = document.createElement('video');
-      newVideo.srcObject = stream;
-      newVideo.playsInline = true;
-      // mark peerId to find it later at peerLeave event
-      newVideo.setAttribute('data-peer-id', stream.peerId);
-      remoteVideos.append(newVideo);
-      await newVideo.play().catch(console.error);
+      const audioCtx = new(window.AudioContext || window.webkitAudioContext);
+      const dest = audioCtx.createMediaStreamDestination();
+      const merger = audioCtx.createChannelMerger(stream.getTracks().length);
+      stream.getTracks().forEach((track, index) => {
+        const tmpStream = new MediaStream([track]);
+        const mutedAudio = new Audio();
+        mutedAudio.muted = true;
+        mutedAudio.srcObject = tmpStream;
+        mutedAudio.play();
+        const source = audioCtx.createMediaStreamSource(tmpStream);
+        source.connect(merger, 0, index);
+      });
+      merger.connect(dest);
+      
+      const newAudio = document.createElement('audio');
+      newAudio.srcObject = dest.stream;
+      newAudio.setAttribute('data-peer-id', stream.peerId);
+      remoteVideos.append(newAudio);
+      await newAudio.play().catch(console.error);
     });
 
     room.on('data', ({ data, src }) => {
@@ -103,6 +127,9 @@ const Peer = window.Peer;
         remoteVideo.srcObject = null;
         remoteVideo.remove();
       });
+
+      recorder.stop();
+      console("recorder stop.");
     });
 
     sendTrigger.addEventListener('click', onClickSend);

@@ -12,8 +12,6 @@ const Peer = window.Peer;
   const messages = document.getElementById('js-messages');
   const meta = document.getElementById('js-meta');
   const sdkSrc = document.querySelector('script[src*=skyway]');
-  const slct_vDevice = document.getElementById('js-vdevices');
-  const slct_aDevice = document.getElementById('js-adevices');
 
   meta.innerText = `
     UA: ${navigator.userAgent}
@@ -28,73 +26,18 @@ const Peer = window.Peer;
     () => (roomMode.textContent = getRoomModeByHash())
   );
 
-  async function playLocalStream(_localStream){
-    // Render local stream
-    localVideo.muted = true;
-    localVideo.srcObject = _localStream;
-    localVideo.playsInline = true;
-    await localVideo.play().catch(console.error);
-  }
-
-  //select device
-  let localStream;
-  localStream = await navigator.mediaDevices
+  const localStream = await navigator.mediaDevices
     .getUserMedia({
       audio: true,
       video: true,
     })
     .catch(console.error);
-  playLocalStream(localStream);
 
-  const devices = await navigator.mediaDevices.enumerateDevices();
-
-  devices.find( (device) => {
-      if(device.kind === "audioinput"){
-        const option = document.createElement("option");
-        option.text = device.label;
-        option.value = device.deviceId;
-        slct_aDevice.appendChild(option);
-      }
-  });
-  devices.find( (device) => {
-      if(device.kind === "videoinput"){
-        const option = document.createElement("option");
-        option.text = device.label;
-        option.value = device.deviceId;
-        slct_vDevice.appendChild(option);
-      }
-  });
-
-  slct_aDevice.addEventListener('change', async () => {
-    localStream = await navigator.mediaDevices
-      .getUserMedia({
-        audio: { //true,
-          deviceId: slct_aDevice.value,
-        },
-        video: { //true,
-          deviceId: slct_vDevice.value,
-        },
-      })
-      .catch(console.error);
-
-
-    playLocalStream(localStream);
-  });
-  slct_vDevice.addEventListener('change', async () => {
-    localStream = await navigator.mediaDevices
-      .getUserMedia({
-        audio: { //true,
-          deviceId: slct_aDevice.value,
-        },
-        video: { //true,
-          deviceId: slct_vDevice.value,
-        },
-      })
-      .catch(console.error);
-
-
-    playLocalStream(localStream);
-  });
+  // Render local stream
+  localVideo.muted = true;
+  localVideo.srcObject = localStream;
+  localVideo.playsInline = true;
+  await localVideo.play().catch(console.error);
 
   // eslint-disable-next-line require-atomic-updates
   const peer = (window.peer = new Peer({
@@ -106,52 +49,29 @@ const Peer = window.Peer;
   joinTrigger.addEventListener('click', () => {
     // Note that you need to ensure the peer has connected to signaling server
     // before using methods of peer instance.
+
+    const rooms = new Array('A', 'B', 'C');
+    rooms.forEach( roomName => {
+      joinRoom(roomName);
+    });
+
+  });
+
+  function joinRoom(roomName){
     if (!peer.open) {
       return;
     }
 
-    const room = peer.joinRoom(roomId.value, {
+    const room = peer.joinRoom(roomName, {
       mode: getRoomModeByHash(),
       stream: localStream,
     });
 
-    //slct_device.removeEventListener('change', ());
-    slct_aDevice.addEventListener('change', async () => {
-      localStream = await navigator.mediaDevices
-        .getUserMedia({
-          audio: { //true,
-            deviceId: slct_aDevice.value,
-          },
-          video: { // true,
-            deviceId: slct_vDevice.value,
-          },
-        })
-        .catch(console.error);
-
-      //replace to Stream from new device via AudioContext Filter
-      const audioContext = new AudioContext();
-
-      const mediaStreamSource = audioContext.createMediaStreamSource(localStream);
-      const destination = audioContext.createMediaStreamDestination();
-      mediaStreamSource.connect(destination);
-
-      const newLocalStream = new MediaStream();
-
-      localStream.getVideoTracks().forEach( track => newLocalStream.addTrack(track));
-      destination.stream.getAudioTracks().forEach( track => newLocalStream.addTrack(track));
-      console.log(newLocalStream.getAudioTracks());
-      console.log(newLocalStream.getVideoTracks());
-      
-
-      playLocalStream(newLocalStream);
-      room.replaceStream(newLocalStream);
-    });
-
     room.once('open', () => {
-      messages.textContent += '=== You joined ===\n';
+      messages.textContent += `=== You joined in ${roomName} ===\n`;
     });
     room.on('peerJoin', peerId => {
-      messages.textContent += `=== ${peerId} joined ===\n`;
+      messages.textContent += `=== ${peerId} joined ${roomName} ===\n`;
     });
 
     // Render remote stream for new peer join in the room
@@ -203,7 +123,7 @@ const Peer = window.Peer;
       messages.textContent += `${peer.id}: ${localText.value}\n`;
       localText.value = '';
     }
-  });
+  }
 
   peer.on('error', console.error);
 })();
