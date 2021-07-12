@@ -12,7 +12,8 @@ const Peer = window.Peer;
   const messages = document.getElementById('js-messages');
   const meta = document.getElementById('js-meta');
   const sdkSrc = document.querySelector('script[src*=skyway]');
-  const slct_device = document.getElementById('js-devices');
+  const slct_vDevice = document.getElementById('js-vdevices');
+  const slct_aDevice = document.getElementById('js-adevices');
 
   meta.innerText = `
     UA: ${navigator.userAgent}
@@ -48,28 +49,48 @@ const Peer = window.Peer;
   const devices = await navigator.mediaDevices.enumerateDevices();
 
   devices.find( (device) => {
-    console.log(device);
       if(device.kind === "audioinput"){
         const option = document.createElement("option");
         option.text = device.label;
         option.value = device.deviceId;
-        slct_device.appendChild(option);
+        slct_aDevice.appendChild(option);
+      }
+      if(device.kind === "videoinput"){
+        const option = document.createElement("option");
+        option.text = device.label;
+        option.value = device.deviceId;
+        slct_vDevice.appendChild(option);
       }
   });
 
-  console.log(slct_device.value);
-  slct_device.addEventListener('change', async () => {
+  slct_aDevice.addEventListener('change', async () => {
     localStream = await navigator.mediaDevices
       .getUserMedia({
         audio: { //true,
-          deviceId: slct_device.value,
+          deviceId: slct_aDevice.value,
         },
-        video: true,
+        video: { //true,
+          deviceId: slct_vDevice.value,
+        },
       })
       .catch(console.error);
 
 
-    console.log(slct_device.value);
+    playLocalStream(localStream);
+  });
+  slct_vDevice.addEventListener('change', async () => {
+    localStream = await navigator.mediaDevices
+      .getUserMedia({
+        audio: { //true,
+          deviceId: slct_aDevice.value,
+        },
+        video: { //true,
+          deviceId: slct_vDevice.value,
+        },
+      })
+      .catch(console.error);
+
+
     playLocalStream(localStream);
   });
 
@@ -93,13 +114,15 @@ const Peer = window.Peer;
     });
 
     //slct_device.removeEventListener('change', ());
-    slct_device.addEventListener('change', async () => {
+    slct_aDevice.addEventListener('change', async () => {
       localStream = await navigator.mediaDevices
         .getUserMedia({
           audio: { //true,
-            deviceId: slct_device.value,
+            deviceId: slct_aDevice.value,
           },
-          video: true,
+          video: { // true,
+            deviceId: slct_vDevice.value,
+          },
         })
         .catch(console.error);
 
