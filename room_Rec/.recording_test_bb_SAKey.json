@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "gikai-webcor-96921564",
+  "private_key_id": "8d4fb2750d5327d341a41e6d2ade02097bd75d4f",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCj0b9YEtKrqT+1\nlm4GsFxu+7rA6L51G7Jm6DA2sYhTcY/EyOM/gIJ+M6klKhyo2Oi6393cbdtlUjRR\niKvsdoe1okFuRCGnVoZuvvM6NBpFrFHc8xgEBiZmF06ApGks7K4wjsmY96O+uVnM\nEmdno2Dym4idv1mcfYBsOkZ88d06Vn7DhBIHox8hYZM9J1qGQq2HcVxgni8fE0Dw\nfF5FPBt102eaClQ7pBaZD0cW1DyWjSvjuaGULlvGuopAkYFbYFR+jLrOvLa0tcw4\nC5RGvByYRQAXMFtCt5Fb1BvPm2wE1T9KIuNpTXfwO478lQzZvmk9B/a84MWe8cJy\ndmZfw5PdAgMBAAECggEACLlIuUX3VhDjRaZHIbAOnBJntZIvYkkhTP2cY608l0T6\n5P3VrDIJwPK7VTFS6WLzsc/uHqjzAAhKpPTkQulk/LUxSs/yAtlGu2sLxNO1enRc\nv6lqY/x32wPuuEcJGs1X0VopPi4h2CxCre1k+E3pAcJqmgvwl7bPOfQ4gLrYjxyq\nO0BxXe1neu04/ooGwIvNW2D79FxfCVtWay1DB2fVZgcaUGoTR+yfATGs5t0J2cwG\nm44MhCmC90fHmR50W1OJjWI/Xx7Dqhx1c3jmhtOBEJGqpEESgxqDH9sLASQqYT2O\n4HEkN7jGO+k2O9ICZqgi4BhCu5Tv3xKVq3jemKTGeQKBgQDVQMVGQzy+cPNB6YWH\nEKkD98HzkDbF4598tgXX3Y0gWOh+DXK45QUwubSZDukOofnx4e4JDBvU1YjrqKIS\nRrRCY9pjdrx0QbFN/8Lx7861jCr5Ng41q1DUjOUyYqnV3OAGeCxFt2+cySeIQlEL\n2eyBpGN4ZY5j677Qpn2jNoBmUwKBgQDEqECVmx6JJ8wRYX6Fqe7nrXD2SR4/4aQy\nEpUr1tKSOql09EizsP+CIHD4z5agB81wUY35fOu220e1HsDR+dU696Yb+YNbLZ36\ne+ON97awioHzqroTrjZO5j8+NRwqhK4PvignYyj44irm0SI+3CGZiEZlHpI9Beg3\nn8Yk5v93DwKBgQCn3ShsupiiQD7771pQi2i/2tMtaqPy+c6dWJsY5SkmAVZhgyx/\nJqgDRutGYFpMTmx1XqcFMCboTn5NIp0RTd6vM/LAwMJvsRZkk6Nc1qwcdI2PRmHB\nFW23IoF4O/n8grVF4mrXJiIRhLY9qBYsAgsNsd0q9KY1OWkmzSewxkIkSQKBgC0o\nWZRBB3UFP3XqRkxZJjPq/tp/FcQjgznATKLBdJ8Be3IQujUQ+ssdufNYb8UVpZYa\nFBjrF5ForwGnKy3MSat9vJYF6KTiR7mCA1HRRREq7QZP+OSWB4B8nJ8jQPF+gB27\nU6sfuQPVo3ZXJZ77m3eO9GM57ui2V4mWVcCZjqX/AoGAd4oM13akSwwdFQSyZgg2\n4SHUYpSuOAv8v1bRGhwYJNgYeLVf6TIV+IJ08JTKozIG2sEcRkjOI1RpNh2ODdXs\nMBusMqznKkEOw3ZrZp9PST/hHPaxIjF6rIeYy8CHemMb9hYsfx7yINF44wluOfhr\njOWXmzFFhD2gMAiciptztFc=\n-----END PRIVATE KEY-----\n",
+  "client_email": "recording-test-bb@gikai-webcor-96921564.iam.gserviceaccount.com",
+  "client_id": "109210374615127757310",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/recording-test-bb%40gikai-webcor-96921564.iam.gserviceaccount.com"
+}
