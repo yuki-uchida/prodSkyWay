@@ -1,4 +1,3 @@
-///////////Last Update: 2021.10.4//////////////
 const Peer = window.Peer;
 
 (async function main() {
@@ -13,8 +12,6 @@ const Peer = window.Peer;
   const messages = document.getElementById('js-messages');
   const meta = document.getElementById('js-meta');
   const sdkSrc = document.querySelector('script[src*=skyway]');
-  const StreamMute = document.getElementById('js-streamMute-trigger');
-  const PlayerMute = document.getElementById('js-playerMute-trigger');
 
   meta.innerText = `
     UA: ${navigator.userAgent}
@@ -44,7 +41,7 @@ const Peer = window.Peer;
 
   // eslint-disable-next-line require-atomic-updates
   const peer = (window.peer = new Peer({
-    key: window.__SKYWAY_KEY__,
+    key: window.__SKYWAYEE_KEY__,
     debug: 3,
   }));
 
@@ -62,8 +59,15 @@ const Peer = window.Peer;
       videoCodec: 'VP8',
     });
 
+    //Recorder Start
+    const recorder = SkyWayRecorder.createRecorder(window.__SKYWAYEE_KEY__)
+    recorder.on("abort", (err) => {
+      console.log("Aborted!:", err)
+    });
+
     room.once('open', () => {
       messages.textContent += '=== You joined ===\n';
+      recorder.start(localStream.getAudioTracks()[0]);
     });
     room.on('peerJoin', peerId => {
       messages.textContent += `=== ${peerId} joined ===\n`;
@@ -106,25 +110,12 @@ const Peer = window.Peer;
         remoteVideo.srcObject = null;
         remoteVideo.remove();
       });
+      //Recorder Stop
+      (recorder.RecorderState == "recording")? recorder.stop():console.log("Recorder hasn't started.");
     });
 
     sendTrigger.addEventListener('click', onClickSend);
     leaveTrigger.addEventListener('click', () => room.close(), { once: true });
-    StreamMute.addEventListener('click', () => {
-      localStream.getTracks().forEach(track => {
-        console.log(track);
-        if(track.kind == 'video' || track.kind == 'audio') track.enabled = !track.enabled;
-        console.log(track);
-      });
-    });
-    PlayerMute.addEventListener('click', () => {
-       remoteVideos.childNodes.forEach(video => {
-        console.log(video);
-        video.muted = !video.mute();
-        console.log(video);
-      });
-    });
-
 
     function onClickSend() {
       // Send message to all of the peers in the room via websocket
