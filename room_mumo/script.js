@@ -120,7 +120,7 @@ const Peer = window.Peer;
     PlayerMute.addEventListener('click', () => {
        remoteVideos.childNodes.forEach(video => {
         console.log(video);
-        video.muted = !video.mute();
+        video.muted = !video.muted;
         console.log(video);
       });
     });
