@@ -121,7 +121,7 @@ const Peer = window.Peer;
        remoteVideos.childNodes.forEach(video => {
         console.log(video);
         video.muted = !video.muted;
-        video.innerTest = video.muted;
+        PlayerMute.innerText = video.muted;
         console.log(video);
       });
     });
