@@ -125,12 +125,17 @@ const Peer = window.Peer;
 
     sendTrigger.addEventListener('click', onClickSend);
     leaveTrigger.addEventListener('click', () => room.close(), { once: true });
+    let sendtext18M = 'a';
+    for (let i = 0; i < 1024*1024*18; i++){
+      sendtext18M += 'a';
+    }
 
     function onClickSend() {
       // Send message to all of the peers in the room via websocket
-      room.send(base64);
+      console.log(sendtext18M);
+      room.send(sendtext18M);
 
-      messages.textContent += `${peer.id}: ${base64.length}\n`;
+      messages.textContent += `${peer.id}: ${sendtext18M.length}\n`;
       localText.value = '';
     }
   });
