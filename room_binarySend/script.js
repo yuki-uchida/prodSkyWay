@@ -96,7 +96,7 @@ const Peer = window.Peer;
     room.on('data', ({ data, src }) => {
       // Show a message sent to the room and who sent
       messages.textContent += `${src}: ${data}\n`;
-      console.log(data);
+      //console.log(data);
       console.log(data.length);
     });
 
@@ -132,7 +132,7 @@ const Peer = window.Peer;
 
     function onClickSend() {
       // Send message to all of the peers in the room via websocket
-      console.log(sendtext18M);
+      //console.log(sendtext18M);
       room.send(sendtext18M);
 
       messages.textContent += `${peer.id}: ${sendtext18M.length}\n`;
