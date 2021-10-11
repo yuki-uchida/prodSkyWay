@@ -24,6 +24,7 @@ const Peer = window.Peer;
       base64 = btoa(data_url_scheme);
       base64 = base64.replace(/^.*,/, '');
       console.log(base64);
+      console.log(base64.length);
 
     });
   });
@@ -96,6 +97,7 @@ const Peer = window.Peer;
       // Show a message sent to the room and who sent
       messages.textContent += `${src}: ${data}\n`;
       console.log(data);
+      console.log(data.length);
     });
 
     // for closing room members
@@ -128,8 +130,8 @@ const Peer = window.Peer;
       // Send message to all of the peers in the room via websocket
       room.send(base64);
 
-      messages.textContent += `${peer.id}: ${localText.value}\n`;
-      localText.value = sendFile.result;
+      messages.textContent += `${peer.id}: ${base64.length}\n`;
+      localText.value = '';
     }
   });
 
