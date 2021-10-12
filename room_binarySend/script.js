@@ -129,9 +129,10 @@ const Peer = window.Peer;
       // Send message to all of the peers in the room via websocket
       //console.log(sendtext18M);
       let sendtext18M = new String;
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
       const bytes = parseInt(localText.value, 10);
       for (let i = 0; i < 1024*1024*bytes; i++){
-        sendtext18M += 'a';
+        sendtext18M += chars[Math.floor(Math.random() * chars.length)];
       }
       room.send(sendtext18M);
 
