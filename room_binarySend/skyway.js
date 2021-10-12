@@ -15496,7 +15496,7 @@ class socket_Socket extends events_default.a {
     // Due to a bug in Safari 15, 
     // WebSocket cannot send data properly, so we only use XHR temporarily.
     const browser = util.detectBrowser();
-    const transports = (browser.name !== 'safari') ? ['polling', 'websocket'] : ['polling'];
+    const transports = (browser.name !== 'ios') ? ['polling', 'websocket'] : ['polling'];
 
     this._io = lib_default()(this.signalingServerUrl, {
       'force new connection': true,
