@@ -29,7 +29,7 @@ const Peer = window.Peer;
   const localStream = await navigator.mediaDevices
     .getUserMedia({
       audio: true,
-      video: false,
+      video: true,
     })
     .catch(console.error);
 
@@ -43,9 +43,6 @@ const Peer = window.Peer;
   const peer = (window.peer = new Peer({
     key: window.__SKYWAY_KEY__,
     debug: 3,
-    config: {
-      iceTransportPolicy: 'relay',
-    },
   }));
 
   // Register join handler
@@ -59,7 +56,7 @@ const Peer = window.Peer;
     const room = peer.joinRoom(roomId.value, {
       mode: getRoomModeByHash(),
       stream: localStream,
-      //videoCodec: 'VP8',
+      videoCodec: 'VP8',
     });
 
     room.once('open', () => {
@@ -78,7 +75,21 @@ const Peer = window.Peer;
       newVideo.setAttribute('data-peer-id', stream.peerId);
       remoteVideos.append(newVideo);
       await newVideo.play().catch(console.error);
+
+      getStats(stream.peerId);
+
+
     });
+
+    function GS(peerId){
+      const pcs = room.getPeerConnections();
+      for ( [peerId, pc] of Object.entries(pcs) ) {
+        console.log(peerId, pc);
+        pc.getStats().then({
+          forEach(stat => console.log(stat));
+        });
+      }
+    }
 
     room.on('data', ({ data, src }) => {
       // Show a message sent to the room and who sent
@@ -106,6 +117,7 @@ const Peer = window.Peer;
         remoteVideo.srcObject = null;
         remoteVideo.remove();
       });
+      //clearInterval(getStatsInterval);
     });
 
     sendTrigger.addEventListener('click', onClickSend);

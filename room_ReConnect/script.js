@@ -29,7 +29,7 @@ const Peer = window.Peer;
   const localStream = await navigator.mediaDevices
     .getUserMedia({
       audio: true,
-      video: false,
+      video: true,
     })
     .catch(console.error);
 
@@ -40,12 +40,9 @@ const Peer = window.Peer;
   await localVideo.play().catch(console.error);
 
   // eslint-disable-next-line require-atomic-updates
-  const peer = (window.peer = new Peer({
+  let peer = (window.peer = new Peer({
     key: window.__SKYWAY_KEY__,
     debug: 3,
-    config: {
-      iceTransportPolicy: 'relay',
-    },
   }));
 
   // Register join handler
@@ -55,11 +52,12 @@ const Peer = window.Peer;
     if (!peer.open) {
       return;
     }
+    let closeStatus = 0;  //0: unintented close, 1: intented close
 
-    const room = peer.joinRoom(roomId.value, {
+    let room = peer.joinRoom(roomId.value, {
       mode: getRoomModeByHash(),
       stream: localStream,
-      //videoCodec: 'VP8',
+      videoCodec: 'VP8',
     });
 
     room.once('open', () => {
@@ -98,18 +96,38 @@ const Peer = window.Peer;
     });
 
     // for closing myself
-    room.once('close', () => {
-      sendTrigger.removeEventListener('click', onClickSend);
-      messages.textContent += '== You left ===\n';
-      Array.from(remoteVideos.children).forEach(remoteVideo => {
-        remoteVideo.srcObject.getTracks().forEach(track => track.stop());
-        remoteVideo.srcObject = null;
-        remoteVideo.remove();
-      });
+    room.once('close', async () => {
+      console.log('closeStatus:'+closeStatus);
+      if(closeStatus == 0){
+        console.log('PeerStatus:'+peer.open);
+        console.log('PeerConnection:'+peer.connections);
+        console.log('RoomStatus(peer.rooms):'+peer.rooms);
+        console.log('RoomMembers:'+room.members);
+      }
+        sendTrigger.removeEventListener('click', onClickSend);
+        messages.textContent += '== You left ===\n';
+        Array.from(remoteVideos.children).forEach(remoteVideo => {
+          remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+          remoteVideo.srcObject = null;
+          remoteVideo.remove();
+        });
+
+      await room.close();
+
+      if(closeStatus == 0){
+        room = peer.joinRoom(roomId.value, {
+          mode: getRoomModeByHash(),
+          stream: localStream,
+          videoCodec: 'VP8',
+        });
+      }
     });
 
     sendTrigger.addEventListener('click', onClickSend);
-    leaveTrigger.addEventListener('click', () => room.close(), { once: true });
+    leaveTrigger.addEventListener('click', () => {
+      closeStatus = 1;
+      room.close();
+    }, { once: true });
 
     function onClickSend() {
       // Send message to all of the peers in the room via websocket
@@ -121,4 +139,15 @@ const Peer = window.Peer;
   });
 
   peer.on('error', console.error);
+  peer.on('close', () => {
+    console.log('PeerStatus:'+peer.open);
+    console.log('PeerConnection:'+peer.connections);
+    console.log('RoomStatus(peer.rooms):'+peer.rooms);
+
+    let peer = (window.peer = new Peer({
+      key: window.__SKYWAY_KEY__,
+      debug: 3,
+   }));
+  });
+
 })();

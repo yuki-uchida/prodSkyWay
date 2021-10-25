@@ -29,7 +29,7 @@ const Peer = window.Peer;
   const localStream = await navigator.mediaDevices
     .getUserMedia({
       audio: true,
-      video: false,
+      video: true,
     })
     .catch(console.error);
 
@@ -43,9 +43,6 @@ const Peer = window.Peer;
   const peer = (window.peer = new Peer({
     key: window.__SKYWAY_KEY__,
     debug: 3,
-    config: {
-      iceTransportPolicy: 'relay',
-    },
   }));
 
   // Register join handler
@@ -59,7 +56,7 @@ const Peer = window.Peer;
     const room = peer.joinRoom(roomId.value, {
       mode: getRoomModeByHash(),
       stream: localStream,
-      //videoCodec: 'VP8',
+      videoCodec: 'VP8',
     });
 
     room.once('open', () => {
@@ -99,6 +96,7 @@ const Peer = window.Peer;
 
     // for closing myself
     room.once('close', () => {
+      console.log('close room Connection');
       sendTrigger.removeEventListener('click', onClickSend);
       messages.textContent += '== You left ===\n';
       Array.from(remoteVideos.children).forEach(remoteVideo => {
@@ -121,4 +119,7 @@ const Peer = window.Peer;
   });
 
   peer.on('error', console.error);
+  peer.on('close', () => {
+    console.error('close pc');
+  });
 })();
