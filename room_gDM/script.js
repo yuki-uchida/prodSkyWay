@@ -60,15 +60,20 @@ const Peer = window.Peer;
 
   });
 
+  var l = window.Peer;
+  var peer = window.peer = new l({
+    key: window.__SKYWAY_KEY__,
+    debug: 3,
+  });
   // eslint-disable-next-line require-atomic-updates
-  const peer = (window.peer = new Peer({
+/*  const peer = (window.peer = new Peer({
     key: window.__SKYWAY_KEY__,
     debug: 3,
     config: {
     iceTransportPolicy: 'relay',
   },
   }));
-
+*/
   // Register join handler
   joinTrigger.addEventListener('click', () => {
     // Note that you need to ensure the peer has connected to signaling server

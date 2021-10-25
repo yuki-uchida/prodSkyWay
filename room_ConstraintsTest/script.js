@@ -12,6 +12,11 @@ const Peer = window.Peer;
   const messages = document.getElementById('js-messages');
   const meta = document.getElementById('js-meta');
   const sdkSrc = document.querySelector('script[src*=skyway]');
+  const ConstWidth = document.getElementById('js-width');
+  const ConstHeight = document.getElementById('js-height');
+  const ConstFps = document.getElementById('js-fps');
+  const ApplyConstTrigger = document.getElementById('js-applyConst-trigger');
+
 
   meta.innerText = `
     UA: ${navigator.userAgent}
@@ -29,12 +34,10 @@ const Peer = window.Peer;
   const localStream = await navigator.mediaDevices
     .getUserMedia({
       audio: true,
-      video: {
-        width: 1024,
-        height: 720,
-      }
+      video: true
     })
     .catch(console.error);
+
 
   // Render local stream
   localVideo.muted = true;
@@ -113,6 +116,25 @@ const Peer = window.Peer;
 
     sendTrigger.addEventListener('click', onClickSend);
     leaveTrigger.addEventListener('click', () => room.close(), { once: true });
+    ApplyConstTrigger.addEventListener('click', applyConstraints);
+
+    function applyConstraints(){
+      console.log('Function: ApplyConstraints');
+      const constraints = {
+        width: ConstWidth.value,
+        height: ConstHeight.value,
+        framerate: ConstFps.value
+      };
+      localStream.getVideoTracks().forEach( track => {
+        console.log(track.getConstraints());
+        console.log('nominatedConstraints: '+constraints);
+        track.applyConstraints(constraints).then(() => {
+          room.replaceStream(localStream);
+          console.log('Apply Constraints'&track.getConstraints());
+        })
+        .catch(console.log('Error Apply Constraints.'));
+      });
+    }
 
     function onClickSend() {
       // Send message to all of the peers in the room via websocket
