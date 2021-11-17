@@ -33,6 +33,9 @@ const Peer = window.Peer;
     })
     .catch(console.error);
 
+  window.AudioContext = window.AudioContext||window.webkitAudioContext;
+  audioContext = new AudioContext();
+
   const dummyStream = audioContext.createMediaStreamDestination().stream;
 
   // Render local stream
