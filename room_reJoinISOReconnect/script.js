@@ -6,7 +6,7 @@ const Peer = window.Peer;
   const leaveTrigger = document.getElementById('js-leave-trigger');
   const remoteVideos = document.getElementById('js-remote-streams');
   const roomId = document.getElementById('js-room-id');
-  const roomMode = document.getElementById('js-room-mode');
+  // const roomMode = document.getElementById('js-room-mode');
   const localText = document.getElementById('js-local-text');
   const sendTrigger = document.getElementById('js-send-trigger');
   const messages = document.getElementById('js-messages');
@@ -18,13 +18,14 @@ const Peer = window.Peer;
     SDK: ${sdkSrc ? sdkSrc.src : 'unknown'}
   `.trim();
 
-  const getRoomModeByHash = () => (location.hash === '#sfu' ? 'sfu' : 'mesh');
+  // This is application for sfu mode.
+  // const getRoomModeByHash = () => (location.hash === '#sfu' ? 'sfu' : 'mesh');
 
-  roomMode.textContent = getRoomModeByHash();
-  window.addEventListener(
-    'hashchange',
-    () => (roomMode.textContent = getRoomModeByHash())
-  );
+  // roomMode.textContent = getRoomModeByHash();
+  // window.addEventListener(
+  //   'hashchange',
+  //   () => (roomMode.textContent = getRoomModeByHash())
+  // );
 
   const localStream = await navigator.mediaDevices
     .getUserMedia({
@@ -45,71 +46,21 @@ const Peer = window.Peer;
     debug: 3,
   }));
 
-  //MediaStream Recording with Browser API
-  let mediaRecorder;
-  let blobs = [];
-
-  async function startRecording(stream){
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = (event) => {
-      console.log('OndataAvailable', event);
-      if(event.data && event.data.size > 0){
-        blobs.push(event.data);
-    }}
-    mediaRecorder.onstop = (event) => {
-      messages.textContent += `Recorder: ${mediaRecorder.state}, Event: ${event} \n`;
-      Previewing();
-      downloading();
-    }
-    mediaRecorder.start();
-
-    //mediaRecorder.state.addEventListener('change', () => {
-      messages.textContent += `Recorder: ${mediaRecorder.state} \n`;
-    //});
-
-
-    function Previewing(){
-      if(!blobs.length) return;
-      const PreviewStream = new Blob(blobs, {type: mediaRecorder.mimeType});
-      messages.textContent += `Preview Codec: ${PreviewStream.type} \n`;
-      localVideo.src = null;
-      localVideo.srcObject = null;
-      localVideo.src = window.URL.createObjectURL(PreviewStream);
-      localVideo.playsInline = true;
-      localVideo.controls = true;
-      localVideo.play();
-    }
-
-    function downloading(){
-      const downloadBlob= new Blob(blobs, {type: 'video/VP8'});
-      const url = window.URL.createObjectURL(downloadBlob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = 'test.webm';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }, 100);
-    }
-  }
-
   // Register join handler
-  joinTrigger.addEventListener('click', () => {
+  joinTrigger.addEventListener('click', joinRoom);
+
+  let room;
+  function joinRoom(){
     // Note that you need to ensure the peer has connected to signaling server
     // before using methods of peer instance.
     if (!peer.open) {
+      console.log('Peer is not opened');
       return;
     }
 
-    startRecording(localStream);
-
-    const room = peer.joinRoom(roomId.value, {
-      mode: getRoomModeByHash(),
+    room = peer.joinRoom(roomId.value, {
+      mode: 'sfu', // getRoomModeByHash(),
       stream: localStream,
-      videoCodec: 'VP8',
     });
 
     room.once('open', () => {
@@ -158,13 +109,23 @@ const Peer = window.Peer;
       });
     });
 
-    sendTrigger.addEventListener('click', onClickSend);
-    leaveTrigger.addEventListener('click', () => {
-      room.close();
-      mediaRecorder.stop();
-
+    // Monitering changing iceConnectState
+    let pc;
+    const Interval_getPC = setInterval( () => {
+      if(room.getPeerConnection() == null) return;
+      pc = room.getPeerConnection();
+      pc.oniceconnectionstatechange = async () => {
+        const iceConState = pc.iceConnectionState;
+        if(iceConState == 'disconnected'){
+          console.log(`Change iceConnectionState to ${iceConState}. Try rejoin room`);
+          rejoinRoom();
+        }
       }
-    , { once: true });
+      clearInterval(Interval_getPC);
+    }, 1000);
+
+    sendTrigger.addEventListener('click', onClickSend);
+    leaveTrigger.addEventListener('click', () => room.close(), { once: true });
 
     function onClickSend() {
       // Send message to all of the peers in the room via websocket
@@ -173,7 +134,18 @@ const Peer = window.Peer;
       messages.textContent += `${peer.id}: ${localText.value}\n`;
       localText.value = '';
     }
-  });
+  }
+
+  //Rejoin room
+  function rejoinRoom(){
+    room.close();
+    room = null;
+
+    const waitTime = Math.floor(Math.random() * 1000);
+    setTimeout( joinRoom, waitTime);
+  }
+
+
 
   peer.on('error', console.error);
 })();
