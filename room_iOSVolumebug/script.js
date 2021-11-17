@@ -64,13 +64,14 @@ const Peer = window.Peer;
     });
 
     localStream.getTracks().forEach(track => track.stop);
-    /*localStream = navigator.mediaDevices
+    localStream = navigator.mediaDevices
     .getUserMedia({
       audio: true,
       video: true,
     })
-    .catch(console.error);*/
-    room.replaceStream(localStream);
+    .then( stream => room.replaceStream(stream))
+    .catch(console.error);
+    //room.replaceStream(localStream);
 
     room.once('open', () => {
       messages.textContent += '=== You joined ===\n';
