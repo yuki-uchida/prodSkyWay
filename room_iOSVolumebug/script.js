@@ -69,14 +69,14 @@ const Peer = window.Peer;
 
       //await localStream.getTracks().forEach(track => track.stop);
     setTimeout( () => {
-      localStream = navigator.mediaDevices
+      navigator.mediaDevices
       .getUserMedia({
         audio: true,
         video: true,
       })
       .then( stream => {console.log('replaceStream'); room.replaceStream(stream)})
       .catch(console.error);
-    }, 1000);
+    }, 10000);
       //clearInterval(IntervalId_regUM);
     //room.replaceStream(localStream);
    // }, 1000);
