@@ -33,7 +33,7 @@ const Peer = window.Peer;
     })
     .catch(console.error);
 
-  //const dummyStream = audioContext.createMediaStreamDestination().stream;
+  const dummyStream = audioContext.createMediaStreamDestination().stream;
 
   // Render local stream
   localVideo.muted = true;
@@ -57,10 +57,10 @@ const Peer = window.Peer;
 
     const room = peer.joinRoom(roomId.value, {
       mode: getRoomModeByHash(),
-      stream: localStream,
+      stream: dummyStream,
     });
 
-    //localStream.getTracks().forEach(track => track.stop);
+    localStream.getTracks().forEach(track => track.stop);
     /*localStream = navigator.mediaDevices
     .getUserMedia({
       audio: true,
