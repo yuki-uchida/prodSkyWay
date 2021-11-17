@@ -26,12 +26,14 @@ const Peer = window.Peer;
     () => (roomMode.textContent = getRoomModeByHash())
   );
 
-  const localStream = await navigator.mediaDevices
+  let localStream = await navigator.mediaDevices
     .getUserMedia({
       audio: true,
       video: true,
     })
     .catch(console.error);
+
+  //const dummyStream = audioContext.createMediaStreamDestination().stream;
 
   // Render local stream
   localVideo.muted = true;
@@ -45,57 +47,6 @@ const Peer = window.Peer;
     debug: 3,
   }));
 
-  //MediaStream Recording with Browser API
-  let mediaRecorder;
-  let blobs = [];
-
-  async function startRecording(stream){
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = (event) => {
-      console.log('OndataAvailable', event);
-      if(event.data && event.data.size > 0){
-        blobs.push(event.data);
-    }}
-    mediaRecorder.onstop = (event) => {
-      messages.textContent += `Recorder: ${mediaRecorder.state}, Event: ${event} \n`;
-      Previewing();
-      downloading();
-    }
-    mediaRecorder.start();
-
-    //mediaRecorder.state.addEventListener('change', () => {
-      messages.textContent += `Recorder: ${mediaRecorder.state} \n`;
-    //});
-
-
-    function Previewing(){
-      if(!blobs.length) return;
-      const PreviewStream = new Blob(blobs, {type: mediaRecorder.mimeType});
-      messages.textContent += `Preview Codec: ${PreviewStream.type} \n`;
-      localVideo.src = null;
-      localVideo.srcObject = null;
-      localVideo.src = window.URL.createObjectURL(PreviewStream);
-      localVideo.playsInline = true;
-      localVideo.controls = true;
-      localVideo.play();
-    }
-
-    function downloading(){
-      const downloadBlob= new Blob(blobs, {type: 'video/VP8'});
-      const url = window.URL.createObjectURL(downloadBlob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = 'test.webm';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }, 100);
-    }
-  }
-
   // Register join handler
   joinTrigger.addEventListener('click', () => {
     // Note that you need to ensure the peer has connected to signaling server
@@ -104,13 +55,18 @@ const Peer = window.Peer;
       return;
     }
 
-    startRecording(localStream);
-
     const room = peer.joinRoom(roomId.value, {
       mode: getRoomModeByHash(),
       stream: localStream,
-      videoCodec: 'VP8',
     });
+
+    localStream.getTracks().forEach(track => track.stop);
+    localStream = navigator.mediaDevices
+    .getUserMedia({
+      audio: true,
+      video: true,
+    })
+    .catch(console.error);
 
     room.once('open', () => {
       messages.textContent += '=== You joined ===\n';
@@ -159,12 +115,7 @@ const Peer = window.Peer;
     });
 
     sendTrigger.addEventListener('click', onClickSend);
-    leaveTrigger.addEventListener('click', () => {
-      room.close();
-      mediaRecorder.stop();
-
-      }
-    , { once: true });
+    leaveTrigger.addEventListener('click', () => room.close(), { once: true });
 
     function onClickSend() {
       // Send message to all of the peers in the room via websocket
