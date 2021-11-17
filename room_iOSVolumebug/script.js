@@ -60,18 +60,26 @@ const Peer = window.Peer;
 
     const room = peer.joinRoom(roomId.value, {
       mode: getRoomModeByHash(),
-      stream: dummyStream,
+      stream: localStream,
     });
 
-    localStream.getTracks().forEach(track => track.stop);
-    localStream = navigator.mediaDevices
-    .getUserMedia({
-      audio: true,
-      video: true,
-    })
-    .then( stream => room.replaceStream(stream))
-    .catch(console.error);
+    //const IntervalId_regUM = setInterval( async () => {
+    //  if(getRoomModeByHash() == 'sfu' && room.getPeerConnection() == null){ console.log(room.getPeerConnection()); return;}
+    //  if(getRoomModeByHash() == 'mesh' && room.getPeerConnections.length == 0){ console.log(room.getPeerConnections.length); return;}
+
+      //await localStream.getTracks().forEach(track => track.stop);
+    setTimeout( () => {
+      localStream = navigator.mediaDevices
+      .getUserMedia({
+        audio: true,
+        video: true,
+      })
+      .then( stream => {console.log('replaceStream'); room.replaceStream(stream)})
+      .catch(console.error);
+    }, 1000);
+      //clearInterval(IntervalId_regUM);
     //room.replaceStream(localStream);
+   // }, 1000);
 
     room.once('open', () => {
       messages.textContent += '=== You joined ===\n';
