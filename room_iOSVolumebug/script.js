@@ -61,12 +61,12 @@ const Peer = window.Peer;
     });
 
     //localStream.getTracks().forEach(track => track.stop);
-    localStream = navigator.mediaDevices
+    /*localStream = navigator.mediaDevices
     .getUserMedia({
       audio: true,
       video: true,
     })
-    .catch(console.error);
+    .catch(console.error);*/
     room.replaceStream(localStream);
 
     room.once('open', () => {
