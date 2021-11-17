@@ -60,13 +60,14 @@ const Peer = window.Peer;
       stream: localStream,
     });
 
-    localStream.getTracks().forEach(track => track.stop);
+    //localStream.getTracks().forEach(track => track.stop);
     localStream = navigator.mediaDevices
     .getUserMedia({
       audio: true,
       video: true,
     })
     .catch(console.error);
+    room.replaceStream(localStream);
 
     room.once('open', () => {
       messages.textContent += '=== You joined ===\n';
