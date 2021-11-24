@@ -57,7 +57,7 @@ const Peer = window.Peer;
     }
     console.log('Triggered join.');
 
-    if (room != null) room.close();
+    //if (room != null) room.close();
 
     room = peer.joinRoom(roomId.value, {
       mode: getRoomModeByHash(),
@@ -128,7 +128,7 @@ const Peer = window.Peer;
     if (!peer.open) {
       return;
     }
-    if (room != null) room.close();
+    //if (room != null) room.close();
 
     room = peer.joinRoom(roomId.value, {
       mode: getRoomModeByHash(),
