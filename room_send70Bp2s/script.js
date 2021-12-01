@@ -102,6 +102,7 @@ const Peer = window.Peer;
         remoteVideo.srcObject = null;
         remoteVideo.remove();
       });
+      clearInterval(intervalId);
     });
 
     sendTrigger.addEventListener('click', onClickSend);
@@ -115,12 +116,19 @@ const Peer = window.Peer;
       localText.value = '';
     }
     // send 70bits data per 2 second
-    const longStr = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    //const longStr = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     const intervalRoomSend = () => {
       if(room == null) return;
-      const testJson = JSON.stringify(longStr);
-      room.send(testJson);
-      console.log(`send ${testJson}`);
+      // const longStr = Math.random().toString(100).substring(75);
+      let longStr = "";
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      for (let i = 0; i < 70; i++){
+        longStr += chars[Math.floor(Math.random() * chars.length)];
+      }
+
+      //const testJson = JSON.stringify(longStr);
+      room.send(longStr);
+      console.log(`send ${longStr}`);
     };
 
     const intervalId = window.setInterval(intervalRoomSend, 2000);
