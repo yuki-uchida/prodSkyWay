@@ -13,6 +13,7 @@ const Peer = window.Peer;
   const messages = document.getElementById('js-messages');
   const meta = document.getElementById('js-meta');
   const sdkSrc = document.querySelector('script[src*=skyway]');
+  const switchLocalStream = document.getElementById('js-switch-localstream');
 
   meta.innerText = `
     UA: ${navigator.userAgent}
@@ -27,29 +28,54 @@ const Peer = window.Peer;
     () => (roomMode.textContent = getRoomModeByHash())
   );
 
-  const localStream = await navigator.mediaDevices
+  let localStream = await navigator.mediaDevices
     .getUserMedia({
       audio: true,
       video: true,
     })
     .catch(console.error);
-  const localStream2 = await navigator.mediaDevices
-    .getUserMedia({
-      audio: true,
-      video: true,
-    })
-    .catch(console.error);
-
+  let localStream2 = null;
   // Render local stream
   localVideo.muted = true;
   localVideo.srcObject = localStream;
   localVideo.playsInline = true;
   await localVideo.play().catch(console.error);
-  // Render local stream
-  localVideo2.muted = true;
-  localVideo2.srcObject = localStream;
-  localVideo2.playsInline = true;
-  await localVideo2.play().catch(console.error);
+
+
+
+  switchLocalStream.addEventListener('click', async () => {
+    if( localVideo.srcObject != null){
+      localStream.getTracks().forEach(track => track.stop());
+      //localVideo.srcObject.getTracks().forEach(track => track.stop());
+      localVideo.srcObject = null;
+      localStream2 = await navigator.mediaDevices
+        .getUserMedia({
+          audio: true,
+          video: true,
+        })
+        .catch(console.error);
+      // Render local stream
+      localVideo2.muted = true;
+      localVideo2.srcObject = localStream2;
+      localVideo2.playsInline = true;
+      await localVideo2.play().catch(console.error);
+    } else if( localVideo2.srcObject != null){
+      localStream2.getTracks().forEach(track => track.stop());
+      //localVideo.srcObject.getTracks().forEach(track => track.stop());
+      localVideo2.srcObject = null;
+      let localStream = await navigator.mediaDevices
+        .getUserMedia({
+          audio: true,
+          video: true,
+        })
+        .catch(console.error);
+      // Render local stream
+      localVideo.muted = true;
+      localVideo.srcObject = localStream;
+      localVideo.playsInline = true;
+      await localVideo.play().catch(console.error);
+    }
+  });
 
   // eslint-disable-next-line require-atomic-updates
   const peer = (window.peer = new Peer({
