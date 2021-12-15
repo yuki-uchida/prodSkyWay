@@ -63,7 +63,7 @@ const Peer = window.Peer;
       localStream2.getTracks().forEach(track => track.stop());
       //localVideo.srcObject.getTracks().forEach(track => track.stop());
       localVideo2.srcObject = null;
-      let localStream = await navigator.mediaDevices
+      localStream = await navigator.mediaDevices
         .getUserMedia({
           audio: true,
           video: true,
