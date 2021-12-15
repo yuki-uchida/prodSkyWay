@@ -75,10 +75,10 @@ const Peer = window.Peer;
       localVideo.playsInline = true;
       await localVideo.play().catch(console.error);
     }
-    console.log(`localStream:${localStream}`);
-    console.log(`localVideo:${localVideo}`);
-    console.log(`localStream2:${localStream2}`);
-    console.log(`localVideo2:${localVideo2}`);
+    console.log(localStream.getTracks());
+    console.log(localVideo.srcObject);
+    console.log(localStream2.getTracks());
+    console.log(localVideo2.srcObject);
 
 
   });
