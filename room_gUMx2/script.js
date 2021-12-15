@@ -34,14 +34,14 @@ const Peer = window.Peer;
       video: true,
     })
     .catch(console.error);
-  let localStream2 = null;
   // Render local stream
   localVideo.muted = true;
   localVideo.srcObject = localStream;
   localVideo.playsInline = true;
   await localVideo.play().catch(console.error);
 
-
+  let localStream2 = null;
+  localVideo2.srcObject = localStream2;
 
   switchLocalStream.addEventListener('click', async () => {
     if( localVideo.srcObject != null){
@@ -75,6 +75,12 @@ const Peer = window.Peer;
       localVideo.playsInline = true;
       await localVideo.play().catch(console.error);
     }
+    console.log(`localStream:${localStream}`);
+    console.log(`localVideo:${localVideo}`);
+    console.log(`localStream2:${localStream2}`);
+    console.log(`localVideo2:${localVideo2}`);
+
+
   });
 
   // eslint-disable-next-line require-atomic-updates
