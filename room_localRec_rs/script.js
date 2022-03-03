@@ -78,44 +78,31 @@ const Peer = window.Peer;
   }));
 
   //MediaStream Recording with Browser API
-  class startRecording{
+  class Recorder{
 //  async function startRecording(stream){
     constructor(stream){
-    this.blobs = [];
-    this.mediaRecorder = new MediaRecorder(stream);
-    this.mediaRecorder.ondataavailable = (event) => {
-      console.log('OndataAvailable', event);
-      if(event.data && event.data.size > 0){
-        this.blobs.push(event.data);
-    }}
-    this.mediaRecorder.onstop = (event) => {
-      console.log("stop Recording");
-      //Previewing();
-      this.downloading(stream);
-    }
-    this.mediaRecorder.start();
+      this.blobs = [];
+      this.mediaRecorder = new MediaRecorder(stream);
+      
+      this.mediaRecorder.ondataavailable = (event) => {
+        if(event.data && event.data.size > 0){
+          this.blobs.push(event.data);
+      }}
+      
+      this.mediaRecorder.onstop = (event) => {
+        console.log("stop Recording");
+        this.download(stream);
+      }
 
-    console.log('Start Recording');
+      this.mediaRecorder.start();
+      console.log('Start Recording');
     }
 
-    /*
-    function Previewing(){
-      if(!blobs.length) return;
-      const PreviewStream = new Blob(blobs, {type: mediaRecorder.mimeType});
-      messages.textContent += `Preview Codec: ${PreviewStream.type} \n`;
-      localVideo.src = null;
-      localVideo.srcObject = null;
-      localVideo.src = window.URL.createObjectURL(PreviewStream);
-      localVideo.playsInline = true;
-      localVideo.controls = true;
-      localVideo.play();
-    }
-    */
     stop(){
       this.mediaRecorder.stop()
     }
 
-    downloading(stream){
+    download(stream){
       const downloadBlob= new Blob(this.blobs, {type: 'video/VP8'});
       const url = window.URL.createObjectURL(downloadBlob);
       const a = document.createElement('a');
@@ -139,7 +126,7 @@ const Peer = window.Peer;
       return;
     }
 
-    const localRecorder = new startRecording(localStream);
+    const localRecorder = new Recorder(localStream);
     const remoteRecorder = [];
 
     const room = peer.joinRoom(roomId.value, {
@@ -167,7 +154,7 @@ const Peer = window.Peer;
 
       remoteRecorder.push({
         peerId: stream.peerId,
-        recorder: new startRecording(stream)
+        recorder: new Recorder(stream)
       });
 
       console.log(remoteRecorder);
