@@ -43,8 +43,9 @@ const Peer = window.Peer;
   const peer = (window.peer = new Peer({
     key: window.__SKYWAY_KEY__,
     debug: 3,
+    turn: false,
     config: {
-      iceServers:"",
+      iceServers:[],
     }
   }));
 

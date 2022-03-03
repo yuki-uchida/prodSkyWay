@@ -1,5 +1,6 @@
 const Peer = window.Peer;
 let room;
+let peer;
 
 (async function main() {
   const localVideo = document.getElementById('js-local-stream');
@@ -42,12 +43,9 @@ let room;
   await localVideo.play().catch(console.error);
 
   // eslint-disable-next-line require-atomic-updates
-  const peer = (window.peer = new Peer({
+  peer = (window.peer = new Peer({
     key: window.__SKYWAY_KEY__,
     debug: 3,
-    config: {
-      iceTransportPolicy: 'relay',
-    },
   }));
 
   // Register join handler

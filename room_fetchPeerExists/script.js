@@ -47,7 +47,8 @@ const Peer = window.Peer;
   }));
 
   ChkMyPeer.addEventListener('click', async () => {
-    const isExist = await peer.fetchPeerExists(peer.id);
+    const isExist = await peer.fetchPeerExists(peer.id)
+    .catch( err => console.log(err));
     console.log(`${peer.id} is ${isExist}`);
   });
 

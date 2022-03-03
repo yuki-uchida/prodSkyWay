@@ -45,19 +45,76 @@ const Peer = window.Peer;
     debug: 3,
   }));
 
+  //MediaStream Recording with Browser API
+  class startRecording{
+//  async function startRecording(stream){
+    constructor(stream){
+    this.blobs = [];
+    this.mediaRecorder = new MediaRecorder(stream);
+    this.mediaRecorder.ondataavailable = (event) => {
+      console.log('OndataAvailable', event);
+      if(event.data && event.data.size > 0){
+        this.blobs.push(event.data);
+    }}
+    this.mediaRecorder.onstop = (event) => {
+      console.log("stop Recording");
+      //Previewing();
+      this.downloading(stream);
+    }
+    this.mediaRecorder.start();
+
+    console.log('Start Recording');
+    }
+
+    /*
+    function Previewing(){
+      if(!blobs.length) return;
+      const PreviewStream = new Blob(blobs, {type: mediaRecorder.mimeType});
+      messages.textContent += `Preview Codec: ${PreviewStream.type} \n`;
+      localVideo.src = null;
+      localVideo.srcObject = null;
+      localVideo.src = window.URL.createObjectURL(PreviewStream);
+      localVideo.playsInline = true;
+      localVideo.controls = true;
+      localVideo.play();
+    }
+    */
+    stop(){
+      this.mediaRecorder.stop()
+    }
+
+    downloading(stream){
+      const downloadBlob= new Blob(this.blobs, {type: 'video/VP8'});
+      const url = window.URL.createObjectURL(downloadBlob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `${stream.id}.webm`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+    }
+  }
+
   // Register join handler
-  joinTrigger.addEventListener('click', async () => {
+  joinTrigger.addEventListener('click', () => {
     // Note that you need to ensure the peer has connected to signaling server
     // before using methods of peer instance.
     if (!peer.open) {
       return;
     }
 
+    const localRecorder = new startRecording(localStream);
+    const remoteRecorder = [];
+
     const room = peer.joinRoom(roomId.value, {
       mode: getRoomModeByHash(),
       stream: localStream,
+      videoCodec: 'VP8',
     });
-    room.send('error test');
 
     room.once('open', () => {
       messages.textContent += '=== You joined ===\n';
@@ -75,6 +132,14 @@ const Peer = window.Peer;
       newVideo.setAttribute('data-peer-id', stream.peerId);
       remoteVideos.append(newVideo);
       await newVideo.play().catch(console.error);
+
+      remoteRecorder.push({
+        peerId: stream.peerId,
+        recorder: new startRecording(stream)
+      });
+
+      console.log(remoteRecorder);
+
     });
 
     room.on('data', ({ data, src }) => {
@@ -91,6 +156,10 @@ const Peer = window.Peer;
       remoteVideo.srcObject = null;
       remoteVideo.remove();
 
+      remoteRecorder.forEach( object => {
+        if(object.peerId == peerId) object.recorder.stop();
+      });
+
       messages.textContent += `=== ${peerId} left ===\n`;
     });
 
@@ -106,7 +175,12 @@ const Peer = window.Peer;
     });
 
     sendTrigger.addEventListener('click', onClickSend);
-    leaveTrigger.addEventListener('click', () => room.close(), { once: true });
+    leaveTrigger.addEventListener('click', () => {
+      room.close();
+      localRecorder.stop();//mediaRecorder.stop();
+
+      }
+    , { once: true });
 
     function onClickSend() {
       // Send message to all of the peers in the room via websocket
@@ -117,9 +191,5 @@ const Peer = window.Peer;
     }
   });
 
-  peer.on("error", (error) => {
-    console.error;
-    console.log(`${error.type}: ${error.message}`);
-    if(error.type == 'room-error') console.log('A room-error has occored');
-  });
+  peer.on('error', console.error);
 })();

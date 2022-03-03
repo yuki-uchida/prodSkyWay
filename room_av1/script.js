@@ -56,6 +56,7 @@ const Peer = window.Peer;
     const room = peer.joinRoom(roomId.value, {
       mode: getRoomModeByHash(),
       stream: localStream,
+      videoCodec: 'AV1',
     });
     room.send('error test');
 

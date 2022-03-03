@@ -1,4 +1,6 @@
 const Peer = window.Peer;
+let room;
+let peer;
 
 (async function main() {
   const localVideo = document.getElementById('js-local-stream');
@@ -6,7 +8,7 @@ const Peer = window.Peer;
   const leaveTrigger = document.getElementById('js-leave-trigger');
   const remoteVideos = document.getElementById('js-remote-streams');
   const roomId = document.getElementById('js-room-id');
-  const roomMode = document.getElementById('js-room-mode');
+  // const roomMode = document.getElementById('js-room-mode');
   const localText = document.getElementById('js-local-text');
   const sendTrigger = document.getElementById('js-send-trigger');
   const messages = document.getElementById('js-messages');
@@ -18,13 +20,14 @@ const Peer = window.Peer;
     SDK: ${sdkSrc ? sdkSrc.src : 'unknown'}
   `.trim();
 
-  const getRoomModeByHash = () => (location.hash === '#sfu' ? 'sfu' : 'mesh');
+  // This is application for sfu mode.
+  // const getRoomModeByHash = () => (location.hash === '#sfu' ? 'sfu' : 'mesh');
 
-  roomMode.textContent = getRoomModeByHash();
-  window.addEventListener(
-    'hashchange',
-    () => (roomMode.textContent = getRoomModeByHash())
-  );
+  // roomMode.textContent = getRoomModeByHash();
+  // window.addEventListener(
+  //   'hashchange',
+  //   () => (roomMode.textContent = getRoomModeByHash())
+  // );
 
   const localStream = await navigator.mediaDevices
     .getUserMedia({
@@ -40,24 +43,27 @@ const Peer = window.Peer;
   await localVideo.play().catch(console.error);
 
   // eslint-disable-next-line require-atomic-updates
-  const peer = (window.peer = new Peer({
+  peer = (window.peer = new Peer({
     key: window.__SKYWAY_KEY__,
     debug: 3,
   }));
 
   // Register join handler
-  joinTrigger.addEventListener('click', async () => {
+  joinTrigger.addEventListener('click', joinRoom);
+
+  //let room;
+  function joinRoom(){
     // Note that you need to ensure the peer has connected to signaling server
     // before using methods of peer instance.
     if (!peer.open) {
+      console.log('Peer is not opened');
       return;
     }
 
-    const room = peer.joinRoom(roomId.value, {
-      mode: getRoomModeByHash(),
+    room = peer.joinRoom(roomId.value, {
+      mode: 'sfu', // getRoomModeByHash(),
       stream: localStream,
     });
-    room.send('error test');
 
     room.once('open', () => {
       messages.textContent += '=== You joined ===\n';
@@ -105,6 +111,31 @@ const Peer = window.Peer;
       });
     });
 
+    // Monitering changing iceConnectState
+    let pc;
+    const Interval_getPC = setInterval( () => {
+      //messages.textContent += 'Checking PeerConnection.\n';
+      console.log('Checking PeerConnection.\n');
+      if(room.getPeerConnection() == null) return;
+      pc = room.getPeerConnection();
+      messages.textContent += `IceConnectionState is ${pc.iceConnectionState}.\n`;
+      messages.textContent += `ConnectionState is ${pc.connectionState}.\n`;
+      pc.oniceconnectionstatechange = async () => {
+        const iceConState = pc.iceConnectionState;
+        messages.textContent += `Changed IceConnectionState. IceConnectionState is ${iceConState}.\n`;
+        if(iceConState == 'disconnected'){
+          console.log(`Change iceConnectionState to ${iceConState}. Try rejoin room`);
+          rejoinRoom();
+        }
+      }
+      pc.onconnectionstatechange = event => {
+        const State = pc.connectionState;
+        messages.textContent += `Changed ConnectionState. ConnectionState is ${State}.\n`;
+      }
+      pc.onicecandidateerror = error => console.log(error);
+      clearInterval(Interval_getPC);
+    }, 1000);
+
     sendTrigger.addEventListener('click', onClickSend);
     leaveTrigger.addEventListener('click', () => room.close(), { once: true });
 
@@ -115,11 +146,44 @@ const Peer = window.Peer;
       messages.textContent += `${peer.id}: ${localText.value}\n`;
       localText.value = '';
     }
-  });
+  }
 
-  peer.on("error", (error) => {
+  //Rejoin room
+  async function rejoinRoom(){
+    const stId = await setInterval( async () => {
+      console.log("Checking connectivity to Signaling.");
+      const isExist = await peer.fetchPeerExists(peer.id)
+      .catch( err => {console.log(`FetchError: ${err.type}`)});
+      console.log(isExist.ok);
+      if( isExist == true ){
+        console.log(`PeerExist: ${isExist}`);
+        clearInterval(stId);
+        peer.destroy();
+        peer = (window.peer = new Peer({
+          key: window.__SKYWAY_KEY__,
+          debug: 3,
+        }));
+      } else if( isExist == false ){
+        console.log(`PeerExist: ${isExist}`);
+        clearInterval(stId);
+        peer = (window.peer = new Peer({
+          key: window.__SKYWAY_KEY__,
+          debug: 3,
+        }));
+      } else { console.log(`PeerExist: ${isExist}`);}
+    }, 1001);
+
+    room.close();
+    room = null;
+
+    const waitTime = Math.floor(Math.random() * 1000);
+    setTimeout( joinRoom, waitTime);
+  }
+
+
+
+  peer.on('error', (error) => {
     console.error;
-    console.log(`${error.type}: ${error.message}`);
-    if(error.type == 'room-error') console.log('A room-error has occored');
+    console.log(error.type);
   });
 })();
