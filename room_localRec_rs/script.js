@@ -12,6 +12,8 @@ const Peer = window.Peer;
   const messages = document.getElementById('js-messages');
   const meta = document.getElementById('js-meta');
   const sdkSrc = document.querySelector('script[src*=skyway]');
+  const ECFlag = document.getElementById('js-EC-flag');
+  const NSFlag = document.getElementById('js-NS-flag');
 
   meta.innerText = `
     UA: ${navigator.userAgent}
@@ -28,10 +30,40 @@ const Peer = window.Peer;
 
   const localStream = await navigator.mediaDevices
     .getUserMedia({
-      audio: true,
+      audio: {
+        echoCancellation: ECFlag.checked,
+        noiseSuppression: NSFlag.checked,
+      },
       video: true,
     })
     .catch(console.error);
+
+  ECFlag.addEventListener('change', () =>{
+    const audioTrack = localStream.getAudioTracks()[0];
+    const constraints = audioTrack.getConstraints();
+    constraints.echoCancellation = ECFlag.checked;
+    audioTrack.applyConstraints(constraints)
+    .then( () => {
+      console.log('Constraints:', audioTrack.getConstraints());
+    })
+    .catch( err => {
+      console.log('error Changing Constraints:', e);
+    });
+  });
+
+  NSFlag.addEventListener('change', () =>{
+    const audioTrack = localStream.getAudioTracks()[0];
+    const constraints = audioTrack.getConstraints();
+    constraints.noiseSuppression = NSFlag.checked;
+    audioTrack.applyConstraints(constraints)
+    .then( () => {
+      console.log('Constraints:', audioTrack.getConstraints());
+    })
+    .catch( err => {
+      console.log('error Changing Constraints:', e);
+    });
+  });
+
 
   // Render local stream
   localVideo.muted = true;
