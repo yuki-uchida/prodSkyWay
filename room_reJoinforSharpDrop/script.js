@@ -166,7 +166,7 @@ let peer;
                 console.log('Succeed to Access Diapatcher.');
                 clearInterval(Interval_cDA);
                 setTimeout( () => {
-                  if(pc.iceConnectionState != 'connected'){
+                  if(pc.iceConnectionState != 'connected' && pc.iceConnectionState != 'completed'){
                     pc.removeEventListener('iceconnectionstatechange', chkDisconnected);
                     pc.removeEventListener('connectionstatechange', loggingConnectionState);
                     room.close();
