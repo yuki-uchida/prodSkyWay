@@ -25,7 +25,7 @@ let peer;
   window.addEventListener(
     'hashchange',
     () => (roomMode.textContent = getRoomModeByHash())
-*/  );
+  );*/
 
   const localStream = await navigator.mediaDevices
     .getUserMedia({
