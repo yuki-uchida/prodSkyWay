@@ -154,7 +154,7 @@ const Peer = window.Peer;
       remoteVideos.append(newVideo);
       await newVideo.play().catch(console.error);
 
-      const remoteStream4Rec = stream.close();
+      const remoteStream4Rec = stream.clone();
 
       remoteRecorder.push({
         peerId: stream.peerId,
