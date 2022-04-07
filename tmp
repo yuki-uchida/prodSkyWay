@@ -110,7 +110,7 @@ let peer;
     });
 
 
-    // Try getting a PeerConnection
+    // Monitering changing iceConnectState
     function getPC(){
       return new Promise(resolve => {
         const Interval_getPC = setInterval( () => {
@@ -124,7 +124,6 @@ let peer;
       });
     }
 
-    // Try connecting to a diapatcher to check connectivity to SkyWay 
     function chkDispatcherAccess(){
       return new Promise( (resolve, reject) => {
         const xhr = new XMLHttpRequest();
@@ -138,12 +137,12 @@ let peer;
         };
 
         xhr.onerror = () => {
-          reject("Network Error.");
+          console.log("Network Error");
+          reject("Couldn't connect to dispatcher.");
         };
       });
     }
 
-    // Monitor the connection state after getting PeerConnection object.
     getPC().then( pc => {
       console.log('iceConnectionState:', pc.iceConnectionState);
       console.log('ConnectionState:', pc.connectionState);
@@ -160,27 +159,22 @@ let peer;
         if(iceCS == 'disconnected'){
           let chkCount = 0;
           const Interval_cDA = setInterval( () => {
-            console.log('Check Connectivity to SkyWay.');
+            console.log('Check Dispatcher Access.');
             chkCount++;
             chkDispatcherAccess().then( () => {
-                console.log('Succeed to connect SkyWay.');
+                console.log('Succeed to Access Diapatcher.');
                 clearInterval(Interval_cDA);
                 setTimeout( () => {
                   if(pc.iceConnectionState != 'connected' && pc.iceConnectionState != 'completed'){
                     pc.removeEventListener('iceconnectionstatechange', chkDisconnected);
                     pc.removeEventListener('connectionstatechange', loggingConnectionState);
-                    if(room){
-                      room.close();
-                      //room = null;
-                    }
-                    if(peer.open){
-                      peer.destroy();
-                      peer = null;
-                    }
+                    room.close();
+                    peer.destroy();
                     rejoinRoom();
                   }
                 }, 100);
-            }).catch();
+            })
+            .catch();
             if( chkCount > 60) clearInterval(Interval_cDA);
           }, 1000);
         }
@@ -190,7 +184,7 @@ let peer;
         console.log('peerConnectionState: ', currentPeerCS, '->', peerCS);
         currentPeerCS = pc.connectionState;
       }
-    }).catch( err => console.error(err) );
+    });
 
     sendTrigger.addEventListener('click', onClickSend);
     leaveTrigger.addEventListener('click', () => room.close(), { once: true });
@@ -204,10 +198,17 @@ let peer;
     }
   }
 
-
   function rejoinRoom(){
     const waitTime = Math.floor(Math.random() * 1000);
     setTimeout( () => {
+/*      if(room) {
+        room.close();
+        room=null;
+      }
+      if(peer){
+        peer.destroy();
+        peer=null;
+      }*/
       peer = ( window.peer = new Peer({
         key: window.__SKYWAY_KEY__,
         debug: 3,
@@ -221,7 +222,6 @@ let peer;
       }
     }, 100);
   }
-
 
   peer.on('error', (error) => {
     console.error;
