@@ -38,6 +38,8 @@ const Peer = window.Peer;
     })
     .catch(console.error);
 
+  const localStream4Rec = localStream.clone();
+
   ECFlag.addEventListener('change', () =>{
     const audioTrack = localStream.getAudioTracks()[0];
     const constraints = audioTrack.getConstraints();
@@ -126,7 +128,7 @@ const Peer = window.Peer;
       return;
     }
 
-    const localRecorder = new Recorder(localStream);
+    const localRecorder = new Recorder(localStream4Rec);
     const remoteRecorder = [];
 
     const room = peer.joinRoom(roomId.value, {
@@ -152,9 +154,11 @@ const Peer = window.Peer;
       remoteVideos.append(newVideo);
       await newVideo.play().catch(console.error);
 
+      const remoteStream4Rec = stream.close();
+
       remoteRecorder.push({
         peerId: stream.peerId,
-        recorder: new Recorder(stream)
+        recorder: new Recorder(remoteStream4Rec);
       });
 
       console.log(remoteRecorder);
