@@ -158,7 +158,7 @@ const Peer = window.Peer;
 
       remoteRecorder.push({
         peerId: stream.peerId,
-        recorder: new Recorder(remoteStream4Rec);
+        recorder: new Recorder(remoteStream4Rec),
       });
 
       console.log(remoteRecorder);
