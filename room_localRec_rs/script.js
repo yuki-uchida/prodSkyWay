@@ -84,10 +84,10 @@ const Peer = window.Peer;
   //MediaStream Recording with Browser API
   class Recorder {
     //  async function startRecording(stream){
-    constructor(stream) {
+    constructor(stream, peerId) {
       this.blobs = [];
       this.mediaRecorder = new MediaRecorder(stream);
-
+      this.peerId = peerId;
       this.mediaRecorder.ondataavailable = (event) => {
         if (event.data && event.data.size > 0) {
           this.blobs.push(event.data);
@@ -113,7 +113,7 @@ const Peer = window.Peer;
       const a = document.createElement("a");
       a.style.display = "none";
       a.href = url;
-      a.download = `${stream.id}.webm`;
+      a.download = `${this.peerId}.webm`;
       document.body.appendChild(a);
       a.click();
       setTimeout(() => {
@@ -131,7 +131,7 @@ const Peer = window.Peer;
       return;
     }
 
-    const localRecorder = new Recorder(localStream);
+    const localRecorder = new Recorder(localStream, peer.id);
     const remoteRecorder = [];
 
     const room = peer.joinRoom(roomId.value, {
@@ -150,17 +150,17 @@ const Peer = window.Peer;
     // Render remote stream for new peer join in the room
     room.on("stream", async (stream) => {
       // const remoteStream4Rec = stream.clone();
-      const newVideo = document.createElement("video");
-      newVideo.srcObject = stream;
-      newVideo.playsInline = true;
+      // const newVideo = document.createElement("video");
+      // newVideo.srcObject = stream;
+      // newVideo.playsInline = true;
       // mark peerId to find it later at peerLeave event
-      newVideo.setAttribute("data-peer-id", stream.peerId);
-      remoteVideos.append(newVideo);
-      await newVideo.play().catch(console.error);
+      // newVideo.setAttribute("data-peer-id", stream.peerId);
+      // remoteVideos.append(newVideo);
+      // await newVideo.play().catch(console.error);
 
       remoteRecorder.push({
         peerId: stream.peerId,
-        recorder: new Recorder(stream),
+        recorder: new Recorder(stream, stream.peerId),
       });
 
       console.log(remoteRecorder);
@@ -176,9 +176,9 @@ const Peer = window.Peer;
       const remoteVideo = remoteVideos.querySelector(
         `[data-peer-id="${peerId}"]`
       );
-      remoteVideo.srcObject.getTracks().forEach((track) => track.stop());
-      remoteVideo.srcObject = null;
-      remoteVideo.remove();
+      // remoteVideo.srcObject.getTracks().forEach((track) => track.stop());
+      // remoteVideo.srcObject = null;
+      // remoteVideo.remove();
 
       remoteRecorder.forEach((object) => {
         if (object.peerId == peerId) object.recorder.stop();
@@ -191,11 +191,11 @@ const Peer = window.Peer;
     room.once("close", () => {
       sendTrigger.removeEventListener("click", onClickSend);
       messages.textContent += "== You left ===\n";
-      Array.from(remoteVideos.children).forEach((remoteVideo) => {
-        remoteVideo.srcObject.getTracks().forEach((track) => track.stop());
-        remoteVideo.srcObject = null;
-        remoteVideo.remove();
-      });
+      // Array.from(remoteVideos.children).forEach((remoteVideo) => {
+      //   remoteVideo.srcObject.getTracks().forEach((track) => track.stop());
+      //   remoteVideo.srcObject = null;
+      //   remoteVideo.remove();
+      // });
     });
 
     sendTrigger.addEventListener("click", onClickSend);
