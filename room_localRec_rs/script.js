@@ -177,13 +177,12 @@ const Peer = window.Peer;
       const remoteVideo = remoteVideos.querySelector(
         `[data-peer-id="${peerId}"]`
       );
-      // remoteVideo.srcObject.getTracks().forEach((track) => track.stop());
-      // remoteVideo.srcObject = null;
-      // remoteVideo.remove();
-
       remoteRecorder.forEach((object) => {
         if (object.peerId == peerId) object.recorder.stop();
       });
+      remoteVideo.srcObject.getTracks().forEach((track) => track.stop());
+      remoteVideo.srcObject = null;
+      remoteVideo.remove();
 
       messages.textContent += `=== ${peerId} left ===\n`;
     });
