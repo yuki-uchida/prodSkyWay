@@ -14,6 +14,7 @@ const Peer = window.Peer;
   const sdkSrc = document.querySelector("script[src*=skyway]");
   const ECFlag = document.getElementById("js-EC-flag");
   const NSFlag = document.getElementById("js-NS-flag");
+  const useLocalVideo = document.getElementById("useLocalVideo");
 
   meta.innerText = `
     UA: ${navigator.userAgent}
@@ -34,7 +35,7 @@ const Peer = window.Peer;
         echoCancellation: ECFlag.checked,
         noiseSuppression: NSFlag.checked,
       },
-      video: false,
+      video: true,
     })
     .catch(console.error);
 
