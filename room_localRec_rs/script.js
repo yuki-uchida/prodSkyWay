@@ -149,7 +149,7 @@ const Peer = window.Peer;
 
     // Render remote stream for new peer join in the room
     room.on("stream", async (stream) => {
-      const remoteStream4Rec = stream.clone();
+      // const remoteStream4Rec = stream.clone();
       const newVideo = document.createElement("video");
       newVideo.srcObject = stream;
       newVideo.playsInline = true;
@@ -160,7 +160,7 @@ const Peer = window.Peer;
 
       remoteRecorder.push({
         peerId: stream.peerId,
-        recorder: new Recorder(remoteStream4Rec),
+        recorder: new Recorder(stream),
       });
 
       console.log(remoteRecorder);
