@@ -141,7 +141,7 @@ const Peer = window.Peer;
     });
 
     room.once("open", () => {
-      messages.textContent += "=== You joined ===\n";
+      messages.textContent += `=== ${peer.id} You joined ===\n`;
     });
     room.on("peerJoin", (peerId) => {
       messages.textContent += `=== ${peerId} joined ===\n`;
