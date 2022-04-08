@@ -70,10 +70,10 @@ const Peer = window.Peer;
   });
 
   // Render local stream
-  // localVideo.muted = true;
-  // localVideo.srcObject = localStream;
-  // localVideo.playsInline = true;
-  // await localVideo.play().catch(console.error);
+  localVideo.muted = true;
+  localVideo.srcObject = localStream;
+  localVideo.playsInline = true;
+  await localVideo.play().catch(console.error);
 
   // eslint-disable-next-line require-atomic-updates
   const peer = (window.peer = new Peer({
@@ -202,8 +202,8 @@ const Peer = window.Peer;
     leaveTrigger.addEventListener(
       "click",
       () => {
-        room.close();
         localRecorder.stop(); //mediaRecorder.stop();
+        room.close();
       },
       { once: true }
     );
