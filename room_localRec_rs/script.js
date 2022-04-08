@@ -70,10 +70,10 @@ const Peer = window.Peer;
   });
 
   // Render local stream
-  // localVideo.muted = true;
-  // localVideo.srcObject = localStream;
-  // localVideo.playsInline = true;
-  // await localVideo.play().catch(console.error);
+  localVideo.muted = true;
+  localVideo.srcObject = localStream;
+  localVideo.playsInline = true;
+  await localVideo.play().catch(console.error);
 
   // eslint-disable-next-line require-atomic-updates
   const peer = (window.peer = new Peer({
@@ -151,13 +151,13 @@ const Peer = window.Peer;
     // Render remote stream for new peer join in the room
     room.on("stream", async (stream) => {
       // const remoteStream4Rec = stream.clone();
-      // const newVideo = document.createElement("video");
-      // newVideo.srcObject = stream;
-      // newVideo.playsInline = true;
+      const newVideo = document.createElement("video");
+      newVideo.srcObject = stream;
+      newVideo.playsInline = true;
       // mark peerId to find it later at peerLeave event
-      // newVideo.setAttribute("data-peer-id", stream.peerId);
-      // remoteVideos.append(newVideo);
-      // await newVideo.play().catch(console.error);
+      newVideo.setAttribute("data-peer-id", stream.peerId);
+      remoteVideos.append(newVideo);
+      await newVideo.play().catch(console.error);
 
       remoteRecorder.push({
         peerId: stream.peerId,
