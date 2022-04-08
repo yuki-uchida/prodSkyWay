@@ -80,6 +80,7 @@ const Peer = window.Peer;
     key: window.__SKYWAY_KEY__,
     debug: 3,
   }));
+  console.log(peer.id);
 
   //MediaStream Recording with Browser API
   class Recorder {
