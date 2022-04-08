@@ -39,7 +39,7 @@ const Peer = window.Peer;
     })
     .catch(console.error);
 
-  const localStream4Rec = localStream.clone();
+  // const localStream4Rec = localStream.clone();
 
   ECFlag.addEventListener("change", () => {
     const audioTrack = localStream.getAudioTracks()[0];
@@ -131,7 +131,7 @@ const Peer = window.Peer;
       return;
     }
 
-    const localRecorder = new Recorder(localStream4Rec);
+    const localRecorder = new Recorder(localStream);
     const remoteRecorder = [];
 
     const room = peer.joinRoom(roomId.value, {
