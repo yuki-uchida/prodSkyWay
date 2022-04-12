@@ -1,4 +1,5 @@
 const Peer = window.Peer;
+window.__SKYWAY_KEY__ = "9c315569-6e70-44ec-ae39-291532972825";
 
 (async function main() {
   const localVideo = document.getElementById("js-local-stream");
@@ -8,66 +9,16 @@ const Peer = window.Peer;
   const roomId = document.getElementById("js-room-id");
   const roomMode = document.getElementById("js-room-mode");
   const localText = document.getElementById("js-local-text");
-  const sendTrigger = document.getElementById("js-send-trigger");
   const messages = document.getElementById("js-messages");
-  const meta = document.getElementById("js-meta");
-  const sdkSrc = document.querySelector("script[src*=skyway]");
-  const ECFlag = document.getElementById("js-EC-flag");
-  const NSFlag = document.getElementById("js-NS-flag");
-  const useLocalVideo = document.getElementById("useLocalVideo");
-
-  meta.innerText = `
-    UA: ${navigator.userAgent}
-    SDK: ${sdkSrc ? sdkSrc.src : "unknown"}
-  `.trim();
-
-  const getRoomModeByHash = () => (location.hash === "#sfu" ? "sfu" : "mesh");
-
-  roomMode.textContent = getRoomModeByHash();
-  window.addEventListener(
-    "hashchange",
-    () => (roomMode.textContent = getRoomModeByHash())
-  );
 
   const localStream = await navigator.mediaDevices
     .getUserMedia({
-      audio: {
-        echoCancellation: ECFlag.checked,
-        noiseSuppression: NSFlag.checked,
-      },
+      audio: true,
       video: true,
     })
     .catch(console.error);
 
   // const localStream4Rec = localStream.clone();
-
-  ECFlag.addEventListener("change", () => {
-    const audioTrack = localStream.getAudioTracks()[0];
-    const constraints = audioTrack.getConstraints();
-    constraints.echoCancellation = ECFlag.checked;
-    audioTrack
-      .applyConstraints(constraints)
-      .then(() => {
-        console.log("Constraints:", audioTrack.getConstraints());
-      })
-      .catch((err) => {
-        console.log("error Changing Constraints:", e);
-      });
-  });
-
-  NSFlag.addEventListener("change", () => {
-    const audioTrack = localStream.getAudioTracks()[0];
-    const constraints = audioTrack.getConstraints();
-    constraints.noiseSuppression = NSFlag.checked;
-    audioTrack
-      .applyConstraints(constraints)
-      .then(() => {
-        console.log("Constraints:", audioTrack.getConstraints());
-      })
-      .catch((err) => {
-        console.log("error Changing Constraints:", e);
-      });
-  });
 
   // Render local stream
   localVideo.muted = true;
@@ -80,7 +31,6 @@ const Peer = window.Peer;
     key: window.__SKYWAY_KEY__,
     debug: 3,
   }));
-  console.log(peer.id);
 
   //MediaStream Recording with Browser API
   class Recorder {
@@ -90,17 +40,25 @@ const Peer = window.Peer;
       this.mediaRecorder = new MediaRecorder(stream);
       this.peerId = peerId;
       this.mediaRecorder.ondataavailable = (event) => {
+        // if (event.data) {
+        console.log("ondataavailable?");
+        console.log(event);
+        console.log(event.data);
         if (event.data && event.data.size > 0) {
           this.blobs.push(event.data);
+          console.log("ondataavailable");
         }
       };
 
       this.mediaRecorder.onstop = (event) => {
         console.log("stop Recording");
-        this.download(stream);
+        this.download();
+      };
+      this.mediaRecorder.onerror = (event) => {
+        console.log(`${this.peerId} recorder: raise error ${event}`);
       };
 
-      this.mediaRecorder.start();
+      this.mediaRecorder.start(1000);
       console.log("Start Recording");
     }
 
@@ -108,22 +66,37 @@ const Peer = window.Peer;
       this.mediaRecorder.stop();
     }
 
-    download(stream) {
-      const downloadBlob = new Blob(this.blobs, { type: "video/VP8" });
+    download() {
+      // var options = { mimeType: "video/webm; codecs=vp8" };
+      // var options = { type: 'video/webm' };
+      // var options = { type: "video/VP8" };
+      var options = { type: "video/mp4" };
+      const downloadBlob = new Blob(this.blobs, options);
+      // const downloadBlob = new Blob(this.blobs);
       const url = window.URL.createObjectURL(downloadBlob);
+      console.log(url);
       const a = document.createElement("a");
-      a.style.display = "none";
+      a.style.display = "block";
       a.href = url;
-      a.download = `${this.peerId}.webm`;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }, 100);
+      a.download = `${this.peerId}.mp4`;
+      a.textContent = this.peerId;
+      const dlArea = document.getElementById("js-downloadButton-area");
+      dlArea.appendChild(a);
+      // const a = document.createElement("a");
+      // a.style.display = "none";
+      // a.href = url;
+      // a.download = `${this.peerId}.webm`;
+      // document.body.appendChild(a);
+      // a.click();
+      // setTimeout(() => {
+      //   window.URL.revokeObjectURL(url)
+      //   document.body.removeChild(a)
+      // }, 200)
     }
   }
 
+  let localRecorder = null;
+  let room = null;
   // Register join handler
   joinTrigger.addEventListener("click", () => {
     // Note that you need to ensure the peer has connected to signaling server
@@ -132,14 +105,27 @@ const Peer = window.Peer;
       return;
     }
 
-    const localRecorder = new Recorder(localStream, peer.id);
+    localRecorder = new Recorder(localStream, peer.id);
+    function localMediaRecorderStatusCheck() {
+      const localMediaRecorderStatus =
+        document.getElementById("localMediaRecorder");
+      localMediaRecorderStatus.innerText = localRecorder.mediaRecorder.state;
+    }
+
+    window.setInterval(localMediaRecorderStatusCheck, 500);
+
     const remoteRecorder = [];
 
-    const room = peer.joinRoom(roomId.value, {
-      mode: getRoomModeByHash(),
+    room = peer.joinRoom(roomId.value, {
+      mode: "mesh",
       stream: localStream,
       videoCodec: "VP8",
     });
+
+    function checkWebRTC() {
+      pcs = room.getPeerConnections();
+    }
+    window.setInterval(checkWebRTC, 500);
 
     room.once("open", () => {
       messages.textContent += `=== ${peer.id} You joined ===\n`;
@@ -159,17 +145,20 @@ const Peer = window.Peer;
       remoteVideos.append(newVideo);
       await newVideo.play().catch(console.error);
 
+      const _remoteRecorder = new Recorder(stream, stream.peerId);
+      function remoteMediaRecorderStatusCheck() {
+        const remoteMediaRecorderStatus = document.getElementById(
+          "remoteMediaRecorder"
+        );
+        remoteMediaRecorderStatus.innerText =
+          _remoteRecorder.mediaRecorder.state;
+      }
+      setInterval(remoteMediaRecorderStatusCheck, 500);
+
       remoteRecorder.push({
         peerId: stream.peerId,
-        recorder: new Recorder(stream, stream.peerId),
+        recorder: _remoteRecorder,
       });
-
-      console.log(remoteRecorder);
-    });
-
-    room.on("data", ({ data, src }) => {
-      // Show a message sent to the room and who sent
-      messages.textContent += `${src}: ${data}\n`;
     });
 
     // for closing room members
@@ -188,33 +177,27 @@ const Peer = window.Peer;
     });
 
     // for closing myself
-    room.once("close", () => {
-      sendTrigger.removeEventListener("click", onClickSend);
-      messages.textContent += "== You left ===\n";
-      // Array.from(remoteVideos.children).forEach((remoteVideo) => {
-      //   remoteVideo.srcObject.getTracks().forEach((track) => track.stop());
-      //   remoteVideo.srcObject = null;
-      //   remoteVideo.remove();
-      // });
-    });
+    // room.once("close", () => {
+    //   sendTrigger.removeEventListener("click", onClickSend);
+    //   messages.textContent += "== You left ===\n";
+    //   remoteRecorder.forEach((object) => {
+    //     if (object.peerId == peerId) object.recorder.stop();
+    //   });
+    //   Array.from(remoteVideos.children).forEach((remoteVideo) => {
+    //     remoteVideo.srcObject.getTracks().forEach((track) => track.stop());
+    //     remoteVideo.srcObject = null;
+    //     remoteVideo.remove();
+    //   });
+    // });
 
-    sendTrigger.addEventListener("click", onClickSend);
     leaveTrigger.addEventListener(
       "click",
       () => {
-        localRecorder.stop(); //mediaRecorder.stop();
-        room.close();
+        localRecorder.stop();
+        // room.close();
       },
       { once: true }
     );
-
-    function onClickSend() {
-      // Send message to all of the peers in the room via websocket
-      room.send(localText.value);
-
-      messages.textContent += `${peer.id}: ${localText.value}\n`;
-      localText.value = "";
-    }
   });
 
   peer.on("error", console.error);
